@@ -23,6 +23,16 @@ import { compareRoutes } from "./diagnostics/relay";
 import { runNetworkCheck } from "./diagnostics/network-check";
 import { scanCs2 } from "./diagnostics/cs2";
 import { scanLol } from "./diagnostics/lol";
+import { LiveMonitor, monitorTargets } from "./system/monitor";
+import {
+  boostGames,
+  closeProcess,
+  readPerformance,
+  setGameMode,
+  setPowerScheme,
+} from "./system/performance";
+import { applyQos, readQos } from "./system/qos";
+import { automaticLinks, preferLink, readLinks } from "./system/interfaces";
 import { readStatus, requestMode, uninstall } from "./diagnostics/cs2-firewall";
 import { readHardware } from "./hardware";
 import { exportSessions } from "./export";
@@ -63,6 +73,10 @@ let networkController: AbortController | null = null;
 let networkWork: Promise<NetworkCheck> | null = null;
 let cs2Controller: AbortController | null = null;
 let cs2Work: Promise<unknown> | null = null;
+const monitor = new LiveMonitor((state) => {
+  if (win && !win.isDestroyed() && !win.webContents.isDestroyed())
+    win.webContents.send("routepilot:monitor", state);
+});
 let mutations = Promise.resolve();
 let discoveryController: AbortController | null = null;
 let discoveryWork: Promise<Result<DiscoveryReport>> | null = null;
@@ -143,6 +157,7 @@ async function shutdown() {
   compareController?.abort();
   networkController?.abort();
   cs2Controller?.abort();
+  monitor.stop();
   discoveryController?.abort();
   await Promise.all([
     manager.stopAll(),
@@ -650,6 +665,55 @@ if (!app.requestSingleInstanceLock()) {
               } finally {
                 cs2Controller = null;
                 cs2Work = null;
+              }
+            }
+            case "monitorTargets":
+              return ok(await monitorTargets(new AbortController().signal));
+            case "monitorStart":
+              monitor.start(call.args);
+              return ok(undefined);
+            case "monitorStop":
+              monitor.stop();
+              return ok(undefined);
+            case "perfStatus":
+            case "perfPowerScheme":
+            case "perfGameMode":
+            case "perfCloseProcess":
+            case "perfBoostGames":
+            case "qosStatus":
+            case "qosApply":
+            case "linksStatus":
+            case "linksPrefer":
+            case "linksAutomatic": {
+              const signal = new AbortController().signal;
+              try {
+                switch (call.operation) {
+                  case "perfPowerScheme":
+                    await setPowerScheme(call.args.guid, signal);
+                    return ok(await readPerformance(signal));
+                  case "perfGameMode":
+                    await setGameMode(call.args.on, signal);
+                    return ok(await readPerformance(signal));
+                  case "perfCloseProcess":
+                    await closeProcess(call.args.name, signal);
+                    return ok(await readPerformance(signal));
+                  case "perfBoostGames":
+                    return ok(await boostGames(signal));
+                  case "qosStatus":
+                    return ok(await readQos(signal));
+                  case "qosApply":
+                    return ok(await applyQos(call.args.limits, signal));
+                  case "linksStatus":
+                    return ok(await readLinks(signal));
+                  case "linksPrefer":
+                    return ok(await preferLink(call.args.index, signal));
+                  case "linksAutomatic":
+                    return ok(await automaticLinks(signal));
+                  default:
+                    return ok(await readPerformance(signal));
+                }
+              } catch (e) {
+                return fail("system", e instanceof Error ? e.message : String(e));
               }
             }
             case "cs2Status":

@@ -23,6 +23,27 @@ const api: RoutePilotAPI = {
   runNetworkCheck: () => invoke("runNetworkCheck"),
   scanCs2: () => invoke("scanCs2"),
   scanLol: () => invoke("scanLol"),
+  monitorTargets: () => invoke("monitorTargets"),
+  monitorStart: (target) => invoke("monitorStart", target),
+  monitorStop: () => invoke("monitorStop"),
+  onMonitor: (listener) => {
+    const handler = (
+      _event: Electron.IpcRendererEvent,
+      state: Parameters<typeof listener>[0],
+    ) => listener(state);
+    ipcRenderer.on("routepilot:monitor", handler);
+    return () => ipcRenderer.removeListener("routepilot:monitor", handler);
+  },
+  perfStatus: () => invoke("perfStatus"),
+  perfPowerScheme: (guid) => invoke("perfPowerScheme", { guid }),
+  perfGameMode: (on) => invoke("perfGameMode", { on }),
+  perfCloseProcess: (name) => invoke("perfCloseProcess", { name }),
+  perfBoostGames: () => invoke("perfBoostGames"),
+  qosStatus: () => invoke("qosStatus"),
+  qosApply: (limits) => invoke("qosApply", { limits }),
+  linksStatus: () => invoke("linksStatus"),
+  linksPrefer: (index) => invoke("linksPrefer", { index }),
+  linksAutomatic: () => invoke("linksAutomatic"),
   cs2Status: () => invoke("cs2Status"),
   cs2SetMode: (mode, allow = []) => invoke("cs2SetMode", { mode, allow }),
   cs2Uninstall: () => invoke("cs2Uninstall"),

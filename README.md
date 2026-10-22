@@ -4,7 +4,7 @@ Aplicação desktop para Windows, em português, para organizar aplicações e o
 
 ## Abrir a aplicação
 
-Executar `delivery/RoutePilot-1.5.0-Windows.exe`. A distribuição portátil extrai os seus ficheiros para uma pasta temporária; configurações e histórico ficam na pasta de dados do utilizador. Não requer Node.js para utilização.
+Executar `delivery/RoutePilot-1.6.0-Windows.exe`. A distribuição portátil extrai os seus ficheiros para uma pasta temporária; configurações e histórico ficam na pasta de dados do utilizador. Não requer Node.js para utilização.
 
 1. Adicionar uma aplicação e dar-lhe um nome. Associar um `.exe` é opcional; esse ficheiro não é executado.
 2. Configurar um ou mais hostnames/IPs conhecidos. Não colar URLs.
@@ -51,6 +51,13 @@ Na página do League of Legends, o painel **Servidor do LoL mais perto de ti** m
 ## Verificar a minha rede
 
 A página **Rede** identifica Wi-Fi/cabo e sinal, mede o router, o ping com a ligação parada e durante download/upload (servidores de teste da Cloudflare, ~100–500 MB) e dá uma nota de bufferbloat com conselhos.
+
+## Desempenho, Traffic Shaper e Multi-Internet
+
+- **Desempenho** (nova página): plano de energia (`powercfg`, sem administrador), Modo de Jogo (`HKCU\Software\Microsoft\GameBar`), prioridade alta para processos de jogos conhecidos e lista das apps que mais memória usam, com opção de as fechar (processos do sistema protegidos).
+- **Traffic Shaper**: limites de upload por app com `New-NetQosPolicy` (prefixo `RoutePilot - `, administrador). Só limita o upload; o download depende do router.
+- **Multi-Internet** (página Rede): lista as ligações com gateway, mede o ping em cada uma (`ping -S`) e define a preferida pela métrica da interface (administrador). "Voltar ao automático" repõe `AutomaticMetric`.
+- **Monitor ao vivo** (página Rede): uma sonda por segundo até ao router, à internet, a um datacenter do CS2 ou à cidade de uma região do LoL, com média, jitter, picos e perdas.
 
 ## Comparar rotas com relays próprios
 

@@ -5,6 +5,7 @@ export type Page =
   | "connections"
   | "details"
   | "network"
+  | "performance"
   | "history"
   | "settings"
   | "help";

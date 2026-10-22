@@ -6,6 +6,7 @@ import {
   HelpCircle,
   House,
   Radio,
+  Rocket,
   Search,
   Settings,
   ShieldCheck,
@@ -20,6 +21,7 @@ import { Connections } from "./pages/Connections";
 import { GameDetails } from "./pages/GameDetails";
 import { History } from "./pages/History";
 import { NetworkPage } from "./pages/Network";
+import { PerformancePage } from "./pages/Performance";
 import { SettingsPage, Help } from "./pages/Settings";
 import { isEconomyMode } from "../shared/performance";
 import logo from "./assets/logo.svg";
@@ -28,6 +30,7 @@ const items = [
   { page: "home", label: "Início", icon: House },
   { page: "connections", label: "Aplicações", icon: Radio },
   { page: "network", label: "Rede", icon: Gauge },
+  { page: "performance", label: "Desempenho", icon: Rocket },
   { page: "history", label: "Histórico", icon: Clock3 },
 ] as const;
 
@@ -288,6 +291,8 @@ export function App() {
               <GameDetails id={gameId} />
             ) : page === "network" ? (
               <NetworkPage />
+            ) : page === "performance" ? (
+              <PerformancePage />
             ) : page === "history" ? (
               <History />
             ) : page === "settings" ? (

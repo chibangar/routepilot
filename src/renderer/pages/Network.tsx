@@ -3,6 +3,8 @@ import { Gauge, Lightbulb, Square, Wifi, Cable } from "lucide-react";
 import type { NetworkCheck, NetworkPhase } from "../../shared/contracts";
 import { useApp } from "../context";
 import { PageHeading, SectionTitle, number } from "../components/UI";
+import { NetworkMonitor } from "../components/NetworkMonitor";
+import { NetLinks } from "../components/NetLinks";
 
 const ms = (v: number | null) => (v === null ? "—" : `${number(v, 0)} ms`);
 const loss = (p: NetworkPhase) =>
@@ -150,6 +152,12 @@ export function NetworkPage() {
           </ul>
         </>
       )}
+
+      <SectionTitle>Network Analyzer</SectionTitle>
+      <NetworkMonitor />
+
+      <SectionTitle>Ligações</SectionTitle>
+      <NetLinks />
     </>
   );
 }

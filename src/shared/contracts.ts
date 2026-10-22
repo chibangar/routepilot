@@ -142,7 +142,47 @@ export type LolRegionPing = {
   pingMs: number | null;
 };
 export type LolScan = { measuredAt: string; regions: LolRegionPing[] };
-export type Cs2Mode ="auto" | "manual" | "off";
+export type MonitorTarget = { id: string; group: string; label: string; host: string };
+export type MonitorState = {
+  target: MonitorTarget;
+  running: boolean;
+  samples: (number | null)[];
+  sent: number;
+  lost: number;
+  minMs: number | null;
+  meanMs: number | null;
+  jitterMs: number | null;
+  spikes: number;
+  lastMs: number | null;
+};
+export type PerfProcess = {
+  name: string;
+  count: number;
+  memoryMb: number;
+  cpuSeconds: number;
+  closable: boolean;
+};
+export type PerfStatus = {
+  powerScheme: { guid: string; name: string } | null;
+  highPerformanceAvailable: boolean;
+  gameModeOn: boolean;
+  heavy: PerfProcess[];
+  runningGames: { name: string; priority: string }[];
+};
+export type QosLimit = { exe: string; mbps: number };
+export type QosRule = { exe: string; label: string; mbps: number };
+export type NetLink = {
+  index: number;
+  alias: string;
+  description: string;
+  ip: string;
+  gateway: string;
+  metric: number;
+  automaticMetric: boolean;
+  wifi: boolean;
+  pingMs: number | null;
+};
+export type Cs2Mode = "auto" | "manual" | "off";
 export type Cs2Status = {
   installed: boolean;
   mode: Cs2Mode;
@@ -225,6 +265,20 @@ export interface RoutePilotAPI {
   runNetworkCheck(): Promise<Result<NetworkCheck>>;
   scanCs2(): Promise<Result<Cs2Scan>>;
   scanLol(): Promise<Result<LolScan>>;
+  monitorTargets(): Promise<Result<MonitorTarget[]>>;
+  monitorStart(target: MonitorTarget): Promise<Result<void>>;
+  monitorStop(): Promise<Result<void>>;
+  onMonitor?(listener: (state: MonitorState) => void): () => void;
+  perfStatus(): Promise<Result<PerfStatus>>;
+  perfPowerScheme(guid: string): Promise<Result<PerfStatus>>;
+  perfGameMode(on: boolean): Promise<Result<PerfStatus>>;
+  perfCloseProcess(name: string): Promise<Result<PerfStatus>>;
+  perfBoostGames(): Promise<Result<number>>;
+  qosStatus(): Promise<Result<QosRule[]>>;
+  qosApply(limits: QosLimit[]): Promise<Result<QosRule[]>>;
+  linksStatus(): Promise<Result<NetLink[]>>;
+  linksPrefer(index: number): Promise<Result<NetLink[]>>;
+  linksAutomatic(): Promise<Result<NetLink[]>>;
   cs2Status(): Promise<Result<Cs2Status>>;
   cs2SetMode(mode: Cs2Mode, allow?: string[]): Promise<Result<Cs2Status>>;
   cs2Uninstall(): Promise<Result<Cs2Status>>;

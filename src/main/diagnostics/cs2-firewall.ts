@@ -3,13 +3,12 @@ import { randomBytes } from "node:crypto";
 import { join } from "node:path";
 import type { Cs2Mode, Cs2Status } from "../../shared/contracts";
 import { runProcess, systemCommand } from "./process";
+import { runElevated } from "../system/powershell";
 
 // Todas as regras criadas pelo RoutePilot ficam neste grupo; só estas são
 // alteradas ou removidas.
 export const RULE_GROUP = "RoutePilot CS2";
 export const TASK_NAME = "RoutePilot CS2";
-const powershell = () =>
-  systemCommand("WindowsPowerShell/v1.0/powershell.exe");
 const programData = () =>
   join(process.env.ProgramData || "C:/ProgramData", "RoutePilot");
 const userDir = () =>
@@ -112,31 +111,6 @@ export function uninstallScript(): string {
     `Remove-Item -Recurse -Force ${psQuote(programData())} -ErrorAction SilentlyContinue`,
     "exit 0",
   ].join("\r\n");
-}
-
-async function runElevated(script: string, signal: AbortSignal) {
-  const encoded = Buffer.from(script, "utf16le").toString("base64");
-  // Um único pedido de administrador (UAC); o processo elevado corre escondido.
-  const launcher = [
-    "$ErrorActionPreference = 'Stop'",
-    "try {",
-    `  $p = Start-Process -FilePath '${powershell()}' -Verb RunAs -WindowStyle Hidden -Wait -PassThru -ArgumentList '-NoProfile','-NonInteractive','-EncodedCommand','${encoded}'`,
-    "  exit $p.ExitCode",
-    "} catch { Write-Output 'UAC_DENIED'; exit 5 }",
-  ].join("\n");
-  const r = await runProcess(
-    powershell(),
-    ["-NoProfile", "-NonInteractive", "-Command", launcher],
-    signal,
-    120000,
-    65536,
-    "utf8",
-  );
-  if (r.stdout.includes("UAC_DENIED"))
-    throw new Error("Permissão de administrador recusada. Nada foi alterado.");
-  if (r.timedOut) throw new Error("O pedido de permissão expirou.");
-  if (r.code !== 0)
-    throw new Error(`O Windows recusou a alteração (código ${r.code}).`);
 }
 
 async function taskInstalled(signal: AbortSignal) {

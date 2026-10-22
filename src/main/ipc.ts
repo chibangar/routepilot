@@ -4,6 +4,7 @@ import {
   settingsSchema,
   targetSchema,
   idSchema,
+  validateHost,
 } from "../shared/validation";
 import { ok, fail, type Result } from "../shared/contracts";
 const empty = z.strictObject({});
@@ -43,6 +44,43 @@ const callSchema = z.discriminatedUnion("operation", [
   z.strictObject({ operation: z.literal("runNetworkCheck"), args: empty }),
   z.strictObject({ operation: z.literal("scanCs2"), args: empty }),
   z.strictObject({ operation: z.literal("scanLol"), args: empty }),
+  z.strictObject({ operation: z.literal("monitorTargets"), args: empty }),
+  z.strictObject({
+    operation: z.literal("monitorStart"),
+    args: z.strictObject({
+      id: z.string().min(1).max(40),
+      group: z.string().max(40),
+      label: z.string().max(120),
+      host: z.string().refine((v) => validateHost(v).ok),
+    }),
+  }),
+  z.strictObject({ operation: z.literal("monitorStop"), args: empty }),
+  z.strictObject({ operation: z.literal("perfStatus"), args: empty }),
+  z.strictObject({
+    operation: z.literal("perfPowerScheme"),
+    args: z.strictObject({ guid: z.string().regex(/^[0-9a-f-]{36}$/i) }),
+  }),
+  z.strictObject({ operation: z.literal("perfGameMode"), args: z.strictObject({ on: z.boolean() }) }),
+  z.strictObject({
+    operation: z.literal("perfCloseProcess"),
+    args: z.strictObject({ name: z.string().min(1).max(64) }),
+  }),
+  z.strictObject({ operation: z.literal("perfBoostGames"), args: empty }),
+  z.strictObject({ operation: z.literal("qosStatus"), args: empty }),
+  z.strictObject({
+    operation: z.literal("qosApply"),
+    args: z.strictObject({
+      limits: z
+        .array(z.strictObject({ exe: z.string().min(1).max(64), mbps: z.number().int().min(1).max(1000) }))
+        .max(20),
+    }),
+  }),
+  z.strictObject({ operation: z.literal("linksStatus"), args: empty }),
+  z.strictObject({
+    operation: z.literal("linksPrefer"),
+    args: z.strictObject({ index: z.number().int().min(0).max(100000) }),
+  }),
+  z.strictObject({ operation: z.literal("linksAutomatic"), args: empty }),
   z.strictObject({ operation: z.literal("cs2Status"), args: empty }),
   z.strictObject({
     operation: z.literal("cs2SetMode"),
