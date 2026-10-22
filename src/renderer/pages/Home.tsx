@@ -16,6 +16,7 @@ import { useHardware } from "../use-hardware";
 import { isEconomyMode } from "../../shared/performance";
 import { GameIcon, number } from "../components/UI";
 import type { Game, Session } from "../../shared/contracts";
+import { isCs2 } from "../components/Cs2Datacenters";
 
 export function Home() {
   const { runtime, active, live, navigate, edit, act, refresh, notify, toggleGame, autoDetect } =
@@ -30,40 +31,47 @@ export function Home() {
 
   // Carousel state
   const [slide, setSlide] = useState(0);
+  const cs2 = games.find((g) => isCs2(g.name));
   const slides = [
     {
-      title: "ROTA INTELIGENTE COM MENOR PING",
-      subtitle: "Multi-hop e relays dinâmicos selecionados automaticamente para o melhor desempenho nos teus jogos.",
-      cta: "Otimizar agora",
-      badge: "ROTA ATIVA",
-      color: "red",
+      title: "CS2 NO SERVIDOR COM MENOR PING",
+      subtitle:
+        "Mede os datacenters oficiais da Valve e mantém ativo o mais rápido, automaticamente, ao iniciar sessão e a cada 6 horas.",
+      cta: cs2 ? "Abrir CS2" : "Adicionar CS2",
+      badge: "CS2",
+      action: () => {
+        if (cs2) navigate("details", cs2.id);
+        else {
+          notify("Adiciona o Counter-Strike 2 para escolher o servidor mais rápido.");
+          edit();
+        }
+      },
+    },
+    {
+      title: "O QUE ESTÁ A DAR LAG EM CASA?",
+      subtitle:
+        "Verifica Wi-Fi, router e bufferbloat em cerca de 30 segundos, com nota de A+ a F e conselhos concretos.",
+      cta: "Verificar a rede",
+      badge: "REDE",
+      action: () => navigate("network"),
+    },
+    {
+      title: "COMPARAR ROTAS",
+      subtitle:
+        "Mede o ping direto até ao servidor do jogo e compara com o caminho através dos teus próprios relays.",
+      cta: games[0] ? "Comparar rotas" : "Adicionar jogo",
+      badge: "ROTAS",
       action: () => {
         if (games[0]) navigate("details", games[0].id);
         else edit();
       },
     },
     {
-      title: "JOGUE NO CELULAR SEM LIMITES",
-      subtitle: "Incluso no seu plano. Baixe o app móvel e tenha ping baixo em qualquer lugar.",
-      cta: "Baixe agora",
-      badge: "NOVIDADE",
-      color: "crimson",
-      action: () => notify("O RoutePilot móvel está disponível na loja de apps!"),
-    },
-    {
-      title: "INDIQUE E GANHE",
-      subtitle: "Escolha a recompensa que mais combina com seu estilo e compartilhe com amigos.",
-      cta: "Ver recompensas",
-      badge: "RECOMPENSAS",
-      color: "gold",
-      action: () => notify("Link de indicação copiado para a área de transferência!"),
-    },
-    {
-      title: "ZERO CONSUMO DE RECURSOS",
-      subtitle: "Modo ultra-leve projetado para não roubar nenhum FPS nem sobrecarregar o teu processador.",
-      cta: "Configurações",
-      badge: "ULTRA-LEVE",
-      color: "mint",
+      title: "LEVE NO TEU PC",
+      subtitle:
+        "O modo económico corta animações e atualizações contínuas. As regras do CS2 ficam no Windows e funcionam com a app fechada.",
+      cta: "Definições",
+      badge: "ECONÓMICO",
       action: () => navigate("settings"),
     },
   ];
