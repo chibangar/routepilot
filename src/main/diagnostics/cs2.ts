@@ -41,7 +41,7 @@ export async function loadPops(signal: AbortSignal): Promise<Pop[]> {
   return pops;
 }
 
-async function measure(pop: Pop, timeoutMs: number, signal: AbortSignal): Promise<Cs2Datacenter> {
+export async function measure(pop: Pop, timeoutMs: number, signal: AbortSignal): Promise<Cs2Datacenter> {
   const values: number[] = [];
   // Até dois relays por datacenter; o melhor RTT representa o datacenter.
   for (const ip of pop.relays.slice(0, 2)) {

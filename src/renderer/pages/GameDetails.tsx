@@ -28,6 +28,8 @@ import {
 import { RouteDiagram } from "../components/RouteDiagram";
 import { RouteCompare } from "../components/RouteCompare";
 import { Cs2Datacenters, isCs2 } from "../components/Cs2Datacenters";
+import { LolRegions } from "../components/LolRegions";
+import { isLol } from "../../shared/lol-regions";
 import { RouteSelectorModal } from "../components/RouteSelectorModal";
 import { getDefaultTargetsForGame } from "../../shared/game-presets";
 
@@ -257,6 +259,7 @@ export function GameDetails({ id }: { id: string }) {
       </div>
 
       {isCs2(game.name) && <Cs2Datacenters disabled={busy} />}
+      {isLol(game.name) && <LolRegions disabled={busy} />}
 
       {/* Interactive Multipath Routing Diagram (matching Image 2!) */}
       <section className="diagram-section-card">

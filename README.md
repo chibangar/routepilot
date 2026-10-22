@@ -4,7 +4,7 @@ Aplicação desktop para Windows, em português, para organizar aplicações e o
 
 ## Abrir a aplicação
 
-Executar `delivery/RoutePilot-1.4.2-Windows.exe`. A distribuição portátil extrai os seus ficheiros para uma pasta temporária; configurações e histórico ficam na pasta de dados do utilizador. Não requer Node.js para utilização.
+Executar `delivery/RoutePilot-1.5.0-Windows.exe`. A distribuição portátil extrai os seus ficheiros para uma pasta temporária; configurações e histórico ficam na pasta de dados do utilizador. Não requer Node.js para utilização.
 
 1. Adicionar uma aplicação e dar-lhe um nome. Associar um `.exe` é opcional; esse ficheiro não é executado.
 2. Configurar um ou mais hostnames/IPs conhecidos. Não colar URLs.
@@ -43,6 +43,10 @@ Traceroute não garante o caminho usado pelo jogo. O destino só é confirmado s
 ## CS2: servidor com menor ping
 
 Na página do Counter-Strike 2, o painel **Servidores do CS2** mede os datacenters oficiais da Valve (lista `GetSDRConfig` da Steam) e mostra o ping de cada um. O interruptor **Automático** instala, com um pedido de administrador, a tarefa agendada `RoutePilot CS2`: ao iniciar sessão e a cada 6 horas mede todos os datacenters, mantém ativo o de menor ping (mais os que estão até +10 ms) e bloqueia os restantes na Firewall do Windows, só para UDP, no grupo `RoutePilot CS2`. O script elevado fica em `%ProgramData%/RoutePilot` (só administradores o alteram) e lê do pedido apenas o modo e códigos de datacenter; os IPs vêm sempre da Valve. **Remover do Windows** apaga tarefa, regras e script.
+
+## LoL: região mais perto
+
+Na página do League of Legends, o painel **Servidor do LoL mais perto de ti** mede o RTT até à cidade do datacenter de cada região (lista da wiki oficial: EUW Amesterdão, EUNE Frankfurt, NA Chicago, BR São Paulo…). Como a Riot não responde a ICMP, a medição usa relays da Valve na mesma cidade, ou na mais próxima quando não há (marcado como aproximado). No LoL o servidor é a região da conta, por isso a app recomenda a região e não altera a firewall.
 
 ## Verificar a minha rede
 

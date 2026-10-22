@@ -22,6 +22,7 @@ const api: RoutePilotAPI = {
   cancelCompare: () => invoke("cancelCompare"),
   runNetworkCheck: () => invoke("runNetworkCheck"),
   scanCs2: () => invoke("scanCs2"),
+  scanLol: () => invoke("scanLol"),
   cs2Status: () => invoke("cs2Status"),
   cs2SetMode: (mode, allow = []) => invoke("cs2SetMode", { mode, allow }),
   cs2Uninstall: () => invoke("cs2Uninstall"),

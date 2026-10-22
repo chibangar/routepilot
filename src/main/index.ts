@@ -22,6 +22,7 @@ import { traceHost } from "./diagnostics/trace";
 import { compareRoutes } from "./diagnostics/relay";
 import { runNetworkCheck } from "./diagnostics/network-check";
 import { scanCs2 } from "./diagnostics/cs2";
+import { scanLol } from "./diagnostics/lol";
 import { readStatus, requestMode, uninstall } from "./diagnostics/cs2-firewall";
 import { readHardware } from "./hardware";
 import { exportSessions } from "./export";
@@ -61,7 +62,7 @@ let compareWork: Promise<RouteComparison> | null = null;
 let networkController: AbortController | null = null;
 let networkWork: Promise<NetworkCheck> | null = null;
 let cs2Controller: AbortController | null = null;
-let cs2Work: Promise<Cs2Scan> | null = null;
+let cs2Work: Promise<unknown> | null = null;
 let mutations = Promise.resolve();
 let discoveryController: AbortController | null = null;
 let discoveryWork: Promise<Result<DiscoveryReport>> | null = null;
@@ -631,6 +632,21 @@ if (!app.requestSingleInstanceLock()) {
                 return ok(await cs2Work);
               } catch (e) {
                 return fail("cs2_scan", e instanceof Error ? e.message : String(e));
+              } finally {
+                cs2Controller = null;
+                cs2Work = null;
+              }
+            }
+            case "scanLol": {
+              if (traceWork || compareWork || networkWork || cs2Work || manager.active)
+                return fail("busy", "Já existe um diagnóstico ativo.");
+              cs2Controller = new AbortController();
+              const work = scanLol(store.settings.timeoutMs, cs2Controller.signal);
+              cs2Work = work;
+              try {
+                return ok(await work);
+              } catch (e) {
+                return fail("lol_scan", e instanceof Error ? e.message : String(e));
               } finally {
                 cs2Controller = null;
                 cs2Work = null;

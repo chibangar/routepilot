@@ -133,7 +133,16 @@ export type Cs2Datacenter = {
   pingMs: number | null;
 };
 export type Cs2Scan = { measuredAt: string; datacenters: Cs2Datacenter[] };
-export type Cs2Mode = "auto" | "manual" | "off";
+export type LolRegionPing = {
+  code: string;
+  name: string;
+  city: string;
+  via: string | null;
+  match: "exact" | "near" | null;
+  pingMs: number | null;
+};
+export type LolScan = { measuredAt: string; regions: LolRegionPing[] };
+export type Cs2Mode ="auto" | "manual" | "off";
 export type Cs2Status = {
   installed: boolean;
   mode: Cs2Mode;
@@ -215,6 +224,7 @@ export interface RoutePilotAPI {
   cancelCompare(): Promise<Result<void>>;
   runNetworkCheck(): Promise<Result<NetworkCheck>>;
   scanCs2(): Promise<Result<Cs2Scan>>;
+  scanLol(): Promise<Result<LolScan>>;
   cs2Status(): Promise<Result<Cs2Status>>;
   cs2SetMode(mode: Cs2Mode, allow?: string[]): Promise<Result<Cs2Status>>;
   cs2Uninstall(): Promise<Result<Cs2Status>>;
