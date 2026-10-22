@@ -22,6 +22,7 @@ import { History } from "./pages/History";
 import { NetworkPage } from "./pages/Network";
 import { SettingsPage, Help } from "./pages/Settings";
 import { isEconomyMode } from "../shared/performance";
+import logo from "./assets/logo.svg";
 
 const items = [
   { page: "home", label: "Início", icon: House },
@@ -165,11 +166,7 @@ export function App() {
             aria-label="RoutePilot — Início"
             onClick={() => navigate("home")}
           >
-            <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
-              <path d="M6 6 L12 6 L20 26 L14 26 Z" fill="#ff2d55" />
-              <path d="M26 6 L20 6 L12 26 L18 26 Z" fill="#e51d3b" />
-              <path d="M11 13 L21 13 L19 19 L9 19 Z" fill="#ff4d6d" opacity="0.85" />
-            </svg>
+            <img src={logo} alt="" width={36} height={36} />
           </button>
           <div className="sidebar-divider" />
           <nav aria-label="Navegação principal">

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff3b5c"/>
+      <stop offset="0.55" stop-color="#d11a3f"/>
+      <stop offset="1" stop-color="#6e0a22"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.28"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="route" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="58" fill="url(#bg)"/>
+  <rect x="8" y="8" width="240" height="240" rx="58" fill="url(#shine)"/>
+  <!-- Rota: origem, curva pelo nó intermédio e seta até ao servidor -->
+  <path d="M70 182 C 70 128, 122 150, 128 116 S 160 74, 180 76"
+        fill="none" stroke="url(#route)" stroke-width="20" stroke-linecap="round"/>
+  <path d="M164 52 L196 76 L164 100" fill="none" stroke="#ffffff" stroke-width="20"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="70" cy="186" r="20" fill="#ffffff"/>
+  <circle cx="70" cy="186" r="8" fill="#d11a3f"/>
+  <circle cx="128" cy="118" r="11" fill="#6e0a22" stroke="#ffffff" stroke-width="7"/>
+</svg>

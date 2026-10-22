@@ -4,7 +4,7 @@ Aplicação desktop para Windows, em português, para organizar aplicações e o
 
 ## Abrir a aplicação
 
-Executar `delivery/RoutePilot-1.4.0-Windows.exe`. A distribuição portátil extrai os seus ficheiros para uma pasta temporária; configurações e histórico ficam na pasta de dados do utilizador. Não requer Node.js para utilização.
+Executar `delivery/RoutePilot-1.4.1-Windows.exe`. A distribuição portátil extrai os seus ficheiros para uma pasta temporária; configurações e histórico ficam na pasta de dados do utilizador. Não requer Node.js para utilização.
 
 1. Adicionar uma aplicação e dar-lhe um nome. Associar um `.exe` é opcional; esse ficheiro não é executado.
 2. Configurar um ou mais hostnames/IPs conhecidos. Não colar URLs.
