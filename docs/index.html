@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoutePilot - Diagnóstico e Otimização de Rotas para Jogos no Windows</title>
+  <meta name="description" content="Aplicação desktop para Windows para diagnosticar rotas de rede, menor latência, deteção automática de servidores e monitorização de ping em jogos.">
+  <link rel="icon" href="../assets/icon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --card-bg: #12161f;
+      --card-border: #1f2735;
+      --accent: #00e676;
+      --accent-glow: rgba(0, 230, 118, 0.3);
+      --text: #f0f4f8;
+      --text-muted: #8c9ba8;
+      --font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(0, 230, 118, 0.12) 0%, transparent 60%),
+        radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.08) 0%, transparent 50%);
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    
+    /* Navbar */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+      background: rgba(11, 13, 16, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.5px;
+    }
+    .logo-badge {
+      font-size: 11px;
+      background: rgba(0, 230, 118, 0.12);
+      color: var(--accent);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 700;
+      border: 1px solid rgba(0, 230, 118, 0.3);
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover {
+      color: var(--text);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0b1510;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(0, 230, 118, 0.45);
+      background: #1aff8c;
+    }
+    .btn-secondary {
+      background: #181d28;
+      color: var(--text);
+      border: 1px solid #283040;
+    }
+    .btn-secondary:hover {
+      background: #202736;
+      border-color: #3b465c;
+      transform: translateY(-2px);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 90px 0 60px;
+      text-align: center;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 30px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    .pill-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .hero h1 {
+      font-size: 56px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.15;
+      max-width: 860px;
+      margin: 0 auto 20px;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, #ffffff 40%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 19px;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 36px;
+      line-height: 1.5;
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .hero-note {
+      font-size: 13px;
+      color: #637080;
+    }
+
+    /* App Preview Showcase */
+    .preview-box {
+      margin: 50px auto 0;
+      max-width: 1040px;
+      background: #141720;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+    }
+    .preview-bar {
+      display: flex;
+      align-items: center;
+      padding: 12px 18px;
+      background: #0f1218;
+      border-bottom: 1px solid #1f2533;
+    }
+    .dots {
+      display: flex;
+      gap: 6px;
+    }
+    .dots span {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #2b3345;
+    }
+    .preview-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 0 auto;
+      font-weight: 600;
+    }
+    .preview-box img {
+      width: 100%;
+      display: block;
+      height: auto;
+    }
+
+    /* Features Grid */
+    .features {
+      padding: 100px 0;
+    }
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    .section-header h2 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      margin-bottom: 12px;
+    }
+    .section-header p {
+      color: var(--text-muted);
+      font-size: 17px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 32px;
+      transition: all 0.25s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(0, 230, 118, 0.3);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+    .card-icon {
+      font-size: 28px;
+      margin-bottom: 16px;
+      display: inline-block;
+    }
+    .card h3 {
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .card p {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Auto-Update Banner */
+    .update-banner {
+      background: linear-gradient(135deg, #102419, #131d2a);
+      border: 1px solid rgba(0, 230, 118, 0.3);
+      border-radius: 20px;
+      padding: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 30px;
+      margin: 40px 0 100px;
+      flex-wrap: wrap;
+    }
+    .update-banner h3 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .update-banner p {
+      color: #9cb3a5;
+      max-width: 620px;
+      font-size: 15px;
+    }
+
+    /* FAQ Section */
+    .faq {
+      padding-bottom: 100px;
+    }
+    .faq-list {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .faq-item {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .faq-item h4 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .faq-item p {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 40px 0;
+      text-align: center;
+      color: #637080;
+      font-size: 14px;
+    }
+    footer a {
+      color: var(--accent);
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 38px; }
+      .hero p { font-size: 16px; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="container nav">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#00e676" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+          <path d="M2 12h20"/>
+        </svg>
+        RoutePilot
+        <span class="logo-badge">v1.2.0</span>
+      </div>
+      <nav class="nav-links">
+        <a href="#funcionalidades">Funcionalidades</a>
+        <a href="#como-funciona">Como Funciona</a>
+        <a href="#perguntas">Perguntas Frequentes</a>
+        <a href="https://github.com/chibangar/routepilot" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+      <a href="https://github.com/chibangar/routepilot/releases/latest" class="btn btn-primary">
+        Descarregar
+      </a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="pill">
+        <span class="pill-dot"></span>
+        Versão Oficial 1.2.0 · Atualizações Automáticas via GitHub
+      </div>
+      <h1>A tua ligação nos jogos,<br><span>em perspetiva.</span></h1>
+      <p>
+        Mede o teu ping real em servidores de Counter-Strike 2, Valorant, EA FC e mais. Seleção automática da menor latência, traceroute em tempo real e deteção direta de jogos da Steam.
+      </p>
+
+      <div class="hero-actions">
+        <!-- Direct Installer with Auto-Update -->
+        <a id="download-setup" href="https://github.com/chibangar/routepilot/releases/latest/download/RoutePilot-Setup-1.2.0.exe" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Descarregar para Windows
+        </a>
+
+        <!-- Portable Standalone -->
+        <a id="download-portable" href="https://github.com/chibangar/routepilot/releases/latest/download/RoutePilot-1.2.0-Windows.exe" class="btn btn-secondary">
+          Versão Portátil (.exe)
+        </a>
+      </div>
+      <span class="hero-note">Compatível com Windows 10 e Windows 11 (64-bit) · 100% Gratuito</span>
+
+      <!-- Showcase Box -->
+      <div class="preview-box">
+        <div class="preview-bar">
+          <div class="dots">
+            <span></span><span></span><span></span>
+          </div>
+          <span class="preview-title">RoutePilot - Counter-Strike 2 (Diagrama de Rota Ativa)</span>
+        </div>
+        <img src="screenshots/details.png" alt="RoutePilot em execução mostrando o Diagrama de Rota do CS2">
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="funcionalidades" class="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>Criado para quem leva a rede a sério</h2>
+        <p>Sem métricas fictícias, sem VPNs lentas e sem alterações invasivas no sistema.</p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3>Menor Ping Automático</h3>
+          <p>Envia sondas de teste a múltiplos destinos em simultâneo (Londres, Frankfurt, Madrid, etc.) e escolhe a rota mais veloz para cada jogo.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🎮</div>
+          <h3>Capas Oficiais & Deteção</h3>
+          <p>Reconhece automaticamente as tuas bibliotecas Steam, Epic Games e GOG, exibindo as capas oficiais de alta definição dos teus títulos.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🌐</div>
+          <h3>Diagrama de Rota Visual</h3>
+          <p>Visualiza graficamente a ligação da tua cidade de origem, os nós intermédios e o centro de dados de destino do jogo.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <h3>Sondas ICMP Reais</h3>
+          <p>Mínimo, média, jitter consecutivo e gráfico com amostragem real sem inventar valores artificiais.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🔄</div>
+          <h3>Atualizações Automáticas</h3>
+          <p>Instala uma vez. A aplicação consulta o GitHub Releases em segundo plano e atualiza-se de forma invisível sem precisares de voltar a descarregar ficheiros manualmente.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🛡️</div>
+          <h3>100% Local e Seguro</h3>
+          <p>Não instala adaptadores de rede virtuais, não altera DNS, não mexe na firewall e não requer criação de conta nem mensalidade.</p>
+        </div>
+      </div>
+
+      <!-- Auto Update Feature Banner -->
+      <div class="update-banner">
+        <div>
+          <h3>Recebe sempre as versões mais recentes automaticamente</h3>
+          <p>O RoutePilot verifica periodicamente novidades e descarrega atualizações oficiais em segundo plano. Basta clicares em "Reiniciar" quando fores avisado.</p>
+        </div>
+        <a href="https://github.com/chibangar/routepilot/releases" class="btn btn-primary" target="_blank" rel="noopener">
+          Ver Releases no GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="perguntas" class="faq">
+    <div class="container">
+      <div class="section-header">
+        <h2>Perguntas Frequentes</h2>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <h4>Tenho de ligar o jogo pelo RoutePilot?</h4>
+          <p>Não. Abres o teu jogo normalmente pela Steam, Riot Client ou Epic Games Launcher. O RoutePilot corre em paralelo para monitorizar a rota e a estabilidade da tua ligação.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>Como funcionam as atualizações automáticas?</h4>
+          <p>Ao utilizares o instalador do RoutePilot, a aplicação verifica novidades no repositório do GitHub a cada 30 minutos. Quando uma nova versão é publicada, é descarregada silenciosamente e instalada quando fechas ou reinicias a aplicação.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>O RoutePilot é uma VPN?</h4>
+          <p>Não. O RoutePilot é um analisador e diagnosticador nativo de rotas e latência direta para os servidores oficiais dos jogos. Não altera nem redireciona o tráfego do teu computador através de servidores de terceiros.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>Onde ficam guardados os meus dados?</h4>
+          <p>Ficam guardados exclusivamente no teu computador, na tua pasta local de utilizador (AppData). Nenhuma informação ou telemetria é enviada para servidores externos.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>RoutePilot · Desenvolvido por <a href="https://github.com/chibangar" target="_blank" rel="noopener">Ricardo (chibangar)</a> · Código aberto no <a href="https://github.com/chibangar/routepilot" target="_blank" rel="noopener">GitHub</a></p>
+    </div>
+  </footer>
+
+  <script>
+    // Dynamically fallback download links to latest release if direct file is updated
+    fetch('https://api.github.com/repos/chibangar/routepilot/releases/latest')
+      .then(res => res.json())
+      .then(data => {
+        if (data.assets && data.assets.length) {
+          const setup = data.assets.find(a => a.name.includes('Setup') && a.name.endsWith('.exe'));
+          const portable = data.assets.find(a => !a.name.includes('Setup') && a.name.endsWith('.exe'));
+          if (setup) document.getElementById('download-setup').href = setup.browser_download_url;
+          if (portable) document.getElementById('download-portable').href = portable.browser_download_url;
+        }
+      })
+      .catch(() => {});
+  </script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+export type Result<T> =
+  | { ok: true; value: T }
+  | { ok: false; error: { code: string; message: string } };
+export const ok = <T>(value: T): Result<T> => ({ ok: true, value });
+export const fail = (code: string, message: string): Result<never> => ({
+  ok: false,
+  error: { code, message },
+});
+export type Target = { id: string; label: string; host: string };
+export type Game = {
+  id: string;
+  name: string;
+  executablePath: string | null;
+  targets: Target[];
+  mode: "manual" | "automatic";
+  selectedTargetId: string | null;
+  installation?: Installation;
+  enabled?: boolean;
+  redirectLogin?: boolean;
+};
+export type GameSource =
+  | "Steam"
+  | "Epic Games"
+  | "GOG"
+  | "Riot Games"
+  | "EA App"
+  | "Ubisoft"
+  | "Battle.net"
+  | "Windows"
+  | "Personalizado";
+export type Installation = {
+  discoveryId: string;
+  source: GameSource;
+  externalId: string;
+  sourceName: string;
+  installPath: string;
+  evidencePath: string;
+};
+export type DiscoveredGame = Installation & {
+  id: string;
+  name: string;
+  executablePath: string | null;
+};
+export type DiscoveryReport = {
+  games: DiscoveredGame[];
+  warnings: string[];
+  partial: boolean;
+  cancelled: boolean;
+  scannedAt: string;
+  sources: GameSource[];
+};
+export type Sample = {
+  index: number;
+  at: string;
+  status: "reply" | "timeout" | "error";
+  rttMs: number | null;
+  reason: string | null;
+};
+export type Metrics = {
+  sent: number;
+  received: number;
+  minMs: number | null;
+  meanMs: number | null;
+  jitterMs: number | null;
+  noReplyPercent: number | null;
+};
+export type Session = {
+  id: string;
+  gameId: string;
+  target: Target;
+  startedAt: string;
+  endedAt: string | null;
+  state: "running" | "completed" | "cancelled" | "failed";
+  samples: Sample[];
+  metrics: Metrics;
+  selection?: { target: Target; samples: Sample[] }[];
+};
+export type Settings = {
+  economyMode?: boolean;
+  sampleCount: number;
+  timeoutMs: number;
+  intervalMs: number;
+};
+export type Store = {
+  version: 1;
+  games: Game[];
+  sessions: Session[];
+  settings: Settings;
+  discovery?: { steamLibraries: string[] };
+  globalOptimization?: boolean;
+};
+export type Hop = {
+  ttl: number;
+  address: string | null;
+  rttMs: number | null;
+  status: "reply" | "timeout" | "unparsed";
+  raw: string;
+};
+export type Trace = {
+  target: Target;
+  complete: boolean;
+  hops: Hop[];
+  raw: string;
+  limitations: string[];
+};
+export type Hardware = {
+  sampledAt?: string;
+  sampleWindowMs?: number | null;
+  cpuPercent: number | null;
+  cpuName: string;
+  cpuCount: number;
+  cpuMhz?: number | null;
+  gpuPercent?: number | null;
+  gpuMhz?: number | null;
+  memoryUsedBytes: number;
+  memoryTotalBytes: number;
+};
+export type RuntimeState = {
+  store: Store;
+  active: Session | null;
+  selecting: boolean;
+  traceActive: boolean;
+  dataPath: string;
+};
+export interface RoutePilotAPI {
+  discoverGames(): Promise<Result<DiscoveryReport>>;
+  autoDetectGames(): Promise<Result<{ store: Store; added: number }>>;
+  cancelDiscovery(): Promise<Result<void>>;
+  chooseSteamLibrary(): Promise<Result<DiscoveryReport | null>>;
+  importDiscoveredGames(
+    ids: string[],
+  ): Promise<Result<{ store: Store; added: number; skipped: number }>>;
+  getState(): Promise<Result<RuntimeState>>;
+  retrySave(): Promise<Result<void>>;
+  saveGame(game: Game): Promise<Result<Store>>;
+  removeGame(id: string): Promise<Result<Store>>;
+  chooseExecutable(): Promise<Result<string | null>>;
+  saveSettings(settings: Settings): Promise<Result<Store>>;
+  startSession(id: string): Promise<Result<{ id: string }>>;
+  cancelSession(id: string): Promise<Result<void>>;
+  startTrace(target: Target): Promise<Result<Trace>>;
+  cancelTrace(): Promise<Result<void>>;
+  readHardware(): Promise<Result<Hardware>>;
+  exportSessions(format: "json" | "csv"): Promise<Result<string | null>>;
+  checkForUpdates(): Promise<Result<{ updateAvailable: boolean; version?: string }>>;
+  installUpdate(): Promise<Result<void>>;
+  onSession(listener: (session: Session) => void): () => void;
+  onUpdateDownloaded?(listener: (version: string) => void): () => void;
+}
+declare global {
+  interface Window {
+    routepilot: RoutePilotAPI;
+  }
+}

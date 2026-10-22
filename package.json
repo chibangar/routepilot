@@ -1,0 +1,73 @@
+{
+  "name": "routepilot",
+  "productName": "RoutePilot",
+  "version": "1.2.0",
+  "description": "Diagnóstico local de ligações e rotas para Windows",
+  "author": "Ricardo",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "dist/main/index.cjs",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build": "node scripts/build.mjs",
+    "start": "electron .",
+    "dist:win": "npm run build && electron-builder --win nsis portable zip --x64",
+    "test:smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "electron": "45.0.0",
+    "electron-builder": "26.15.3",
+    "esbuild": "0.28.2",
+    "lucide-react": "1.61.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.5",
+    "vitest": "5.0.5",
+    "zod": "4.6.7"
+  },
+  "build": {
+    "appId": "local.routepilot.desktop",
+    "asar": true,
+    "directories": {
+      "output": "delivery"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "chibangar",
+      "repo": "routepilot"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable",
+        "zip"
+      ],
+      "icon": "assets/icon.ico",
+      "signExecutable": false
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "RoutePilot-Setup-${version}.exe"
+    },
+    "portable": {
+      "artifactName": "RoutePilot-${version}-Windows.exe"
+    }
+  }
+}
