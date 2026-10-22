@@ -10,6 +10,8 @@ import {
   type Store,
   type Trace,
   type RouteComparison,
+  type NetworkCheck,
+  type Cs2Scan,
   type DiscoveryReport,
   type DiscoveredGame,
 } from "../shared/contracts";
@@ -18,6 +20,9 @@ import { loadStore, saveStore, defaultStore } from "./store";
 import { SessionManager } from "./diagnostics/session-manager";
 import { traceHost } from "./diagnostics/trace";
 import { compareRoutes } from "./diagnostics/relay";
+import { runNetworkCheck } from "./diagnostics/network-check";
+import { scanCs2 } from "./diagnostics/cs2";
+import { readStatus, requestMode, uninstall } from "./diagnostics/cs2-firewall";
 import { readHardware } from "./hardware";
 import { exportSessions } from "./export";
 import { scanGameSources, localDirectory, knownExecutable } from "./discovery";
@@ -53,6 +58,10 @@ let traceController: AbortController | null = null;
 let traceWork: Promise<Result<Trace>> | null = null;
 let compareController: AbortController | null = null;
 let compareWork: Promise<RouteComparison> | null = null;
+let networkController: AbortController | null = null;
+let networkWork: Promise<NetworkCheck> | null = null;
+let cs2Controller: AbortController | null = null;
+let cs2Work: Promise<Cs2Scan> | null = null;
 let mutations = Promise.resolve();
 let discoveryController: AbortController | null = null;
 let discoveryWork: Promise<Result<DiscoveryReport>> | null = null;
@@ -131,8 +140,17 @@ async function shutdown() {
   shuttingDown = true;
   traceController?.abort();
   compareController?.abort();
+  networkController?.abort();
+  cs2Controller?.abort();
   discoveryController?.abort();
-  await Promise.all([manager.stopAll(), traceWork, compareWork, discoveryWork]);
+  await Promise.all([
+    manager.stopAll(),
+    traceWork,
+    compareWork,
+    networkWork?.catch(() => undefined),
+    cs2Work?.catch(() => undefined),
+    discoveryWork,
+  ]);
   await mutations;
   if (manager.pendingSession) {
     await manager.retryPersistence();
@@ -541,7 +559,7 @@ if (!app.requestSingleInstanceLock()) {
               });
             case "startSession": {
               if (loadError) return fail("invalid_store", loadError);
-              if (traceWork || compareWork)
+              if (traceWork || compareWork || networkWork || cs2Work)
                 return fail(
                   "busy",
                   "Aguarde o diagnóstico em curso terminar ou cancele-o.",
@@ -554,7 +572,7 @@ if (!app.requestSingleInstanceLock()) {
             case "cancelSession":
               return manager.cancel(call.args.id);
             case "startTrace": {
-              if (traceWork || compareWork || manager.active)
+              if (traceWork || compareWork || networkWork || cs2Work || manager.active)
                 return fail("busy", "Já existe um diagnóstico ativo.");
               traceController = new AbortController();
               traceWork = traceHost(call.args, traceController.signal);
@@ -566,7 +584,7 @@ if (!app.requestSingleInstanceLock()) {
               }
             }
             case "compareRoutes": {
-              if (traceWork || compareWork || manager.active)
+              if (traceWork || compareWork || networkWork || cs2Work || manager.active)
                 return fail("busy", "Já existe um diagnóstico ativo.");
               const relays = store.settings.relays ?? [];
               compareController = new AbortController();
@@ -583,6 +601,67 @@ if (!app.requestSingleInstanceLock()) {
                 compareWork = null;
               }
             }
+            case "runNetworkCheck": {
+              if (traceWork || compareWork || networkWork || cs2Work || manager.active)
+                return fail("busy", "Já existe um diagnóstico ativo.");
+              networkController = new AbortController();
+              const sender = event.sender;
+              networkWork = runNetworkCheck(networkController.signal, (step) => {
+                if (!sender.isDestroyed())
+                  sender.send("routepilot:network-progress", step);
+              });
+              try {
+                return ok(await networkWork);
+              } catch (e) {
+                return fail(
+                  "network_check",
+                  e instanceof Error ? e.message : String(e),
+                );
+              } finally {
+                networkController = null;
+                networkWork = null;
+              }
+            }
+            case "scanCs2": {
+              if (traceWork || compareWork || networkWork || cs2Work || manager.active)
+                return fail("busy", "Já existe um diagnóstico ativo.");
+              cs2Controller = new AbortController();
+              cs2Work = scanCs2(store.settings.timeoutMs, cs2Controller.signal);
+              try {
+                return ok(await cs2Work);
+              } catch (e) {
+                return fail("cs2_scan", e instanceof Error ? e.message : String(e));
+              } finally {
+                cs2Controller = null;
+                cs2Work = null;
+              }
+            }
+            case "cs2Status":
+            case "cs2SetMode":
+            case "cs2Uninstall": {
+              const signal = new AbortController().signal;
+              try {
+                if (
+                  call.operation === "cs2SetMode" &&
+                  call.args.mode === "manual" &&
+                  !call.args.allow.length
+                )
+                  return fail("cs2_firewall", "Escolhe pelo menos um servidor.");
+                return ok(
+                  call.operation === "cs2SetMode"
+                    ? await requestMode(call.args.mode, call.args.allow, signal)
+                    : call.operation === "cs2Uninstall"
+                      ? await uninstall(signal)
+                      : await readStatus(signal),
+                );
+              } catch (e) {
+                return fail("cs2_firewall", e instanceof Error ? e.message : String(e));
+              }
+            }
+            case "cancelNetworkCheck":
+              networkController?.abort();
+              await networkWork?.catch(() => undefined);
+              return ok(undefined);
             case "cancelCompare":
               compareController?.abort();
               await compareWork;

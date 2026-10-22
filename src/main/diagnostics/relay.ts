@@ -11,7 +11,12 @@ export function sign(token: string, fields: string[]) {
   return createHmac("sha256", token).update(fields.join("|")).digest("hex");
 }
 
-type Reply = { ok: boolean; rttMs: number | null; error: string | null };
+type Reply = {
+  ok: boolean;
+  rttMs: number | null;
+  error: string | null;
+  session: string | null;
+};
 
 function sameMac(expected: string, actual: unknown) {
   return (
@@ -37,7 +42,7 @@ async function resolveRelay(host: string) {
 // Envia um pedido assinado e espera pela resposta com o mesmo id e MAC válido.
 export async function relayRequest(
   relay: Relay,
-  op: "echo" | "probe",
+  op: "echo" | "probe" | "open",
   target: string,
   timeoutMs: number,
   signal: AbortSignal,
@@ -83,15 +88,20 @@ export async function relayRequest(
       const ok = msg.ok === true;
       const rttMs = typeof msg.rttMs === "number" ? msg.rttMs : null;
       const error = typeof msg.error === "string" ? msg.error : null;
-      const expected = sign(relay.token, [
+      const session =
+        typeof msg.session === "string" && /^[0-9a-f]{32}$/.test(msg.session)
+          ? msg.session
+          : null;
+      const fields = [
         "reply",
         id,
         String(ok),
         rttMs === null ? "" : String(rttMs),
         error ?? "",
-      ]);
-      if (!sameMac(expected, msg.mac)) return;
-      finish(null, { reply: { ok, rttMs, error }, elapsedMs });
+      ];
+      if (session) fields.push(session);
+      if (!sameMac(sign(relay.token, fields), msg.mac)) return;
+      finish(null, { reply: { ok, rttMs, error, session }, elapsedMs });
     });
     started = performance.now();
     socket.send(body, relay.port, address, (e) => {

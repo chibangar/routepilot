@@ -1,7 +1,13 @@
 import { createContext, useContext } from "react";
 import type { Game, Result, RuntimeState, Session } from "../shared/contracts";
 export type Page =
-  "home" | "connections" | "details" | "history" | "settings" | "help";
+  | "home"
+  | "connections"
+  | "details"
+  | "network"
+  | "history"
+  | "settings"
+  | "help";
 export type AppState = {
   runtime: RuntimeState | null;
   active: Session | null;

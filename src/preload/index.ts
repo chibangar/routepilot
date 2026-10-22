@@ -20,6 +20,19 @@ const api: RoutePilotAPI = {
   cancelTrace: () => invoke("cancelTrace"),
   compareRoutes: (target) => invoke("compareRoutes", target),
   cancelCompare: () => invoke("cancelCompare"),
+  runNetworkCheck: () => invoke("runNetworkCheck"),
+  scanCs2: () => invoke("scanCs2"),
+  cs2Status: () => invoke("cs2Status"),
+  cs2SetMode: (mode, allow = []) => invoke("cs2SetMode", { mode, allow }),
+  cs2Uninstall: () => invoke("cs2Uninstall"),
+  cancelNetworkCheck: () => invoke("cancelNetworkCheck"),
+  onNetworkProgress: (listener) => {
+    const handler = (_event: Electron.IpcRendererEvent, step: string) =>
+      listener(step);
+    ipcRenderer.on("routepilot:network-progress", handler);
+    return () =>
+      ipcRenderer.removeListener("routepilot:network-progress", handler);
+  },
   readHardware: () => invoke("readHardware"),
   exportSessions: (format) => invoke("exportSessions", { format }),
   checkForUpdates: () => invoke("checkForUpdates"),

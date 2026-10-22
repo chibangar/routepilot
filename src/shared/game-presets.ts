@@ -560,7 +560,7 @@ export type RoutingHop = {
   id: string;
   label: string;
   code: string;
-  pingMs: number;
+  pingMs: number | null;
   active: boolean;
   type: "primary" | "secondary" | "tertiary";
 };
@@ -576,7 +576,7 @@ export type MultipathRouteDiagram = {
     label: string;
     region: string;
     host: string;
-    bestPingMs: number;
+    bestPingMs: number | null;
   };
   game: {
     name: string;
@@ -592,93 +592,33 @@ export function computeMultipathDiagram(
   const target =
     selectedTarget ??
     game.targets.find((t) => t.id === game.selectedTargetId) ??
-    game.targets[0] ?? {
-      id: "sp",
-      label: "Sao Paulo",
-      host: "177.54.144.1",
-    };
-
-  // Determine base ping
-  const preset = findPresetForName(game.name);
-  let basePing = 33;
-  if (observedPing !== null && observedPing !== undefined && observedPing > 0) {
-    basePing = Math.round(observedPing);
-  } else if (preset) {
-    for (const r of preset.regions) {
-      const match = r.servers.find((s) => s.id === target.id || s.host === target.host);
-      if (match) {
-        basePing = match.basePing;
-        break;
-      }
-    }
-  }
-
-  // Extract clean city/region from target.label
-  let destCity = "Sao Paulo";
-  let destRegion = "SA";
-  if (target.label.includes("Madrid") || target.label.includes("ES")) {
-    destCity = "Madrid";
-    destRegion = "EU";
-  } else if (target.label.includes("Frankfurt") || target.label.includes("DE")) {
-    destCity = "Frankfurt";
-    destRegion = "EU";
-  } else if (target.label.includes("Londres") || target.label.includes("UK")) {
-    destCity = "Londres";
-    destRegion = "EU";
-  } else if (target.label.includes("Virgínia") || target.label.includes("US")) {
-    destCity = "Virgínia";
-    destRegion = "NA";
-  } else if (target.label.includes("Santiago") || target.label.includes("CL")) {
-    destCity = "Santiago";
-    destRegion = "SA";
-  } else if (target.label.includes("São Paulo") || target.label.includes("BR")) {
-    destCity = "Sao Paulo";
-    destRegion = "SA";
-  }
-
-  const hops: RoutingHop[] = [
-    {
-      id: "hop-1",
+    game.targets[0];
+  const measured =
+    observedPing !== null && observedPing !== undefined && observedPing >= 0
+      ? Math.round(observedPing * 10) / 10
+      : null;
+  // Sem medição não há números: os outros caminhos são só ilustrativos.
+  const hops: RoutingHop[] = (["primary", "secondary", "tertiary"] as const).map(
+    (type, i) => ({
+      id: `hop-${i + 1}`,
       label: "Automático",
-      code: `${destRegion.toLowerCase()}-hop1`,
-      pingMs: basePing,
-      active: true,
-      type: "primary",
-    },
-    {
-      id: "hop-2",
-      label: "Automático",
-      code: `${destRegion.toLowerCase()}-hop2`,
-      pingMs: Math.round(basePing * 1.15) + 3,
-      active: false,
-      type: "secondary",
-    },
-    {
-      id: "hop-3",
-      label: "Automático",
-      code: `${destRegion.toLowerCase()}-hop3`,
-      pingMs: Math.round(basePing * 1.35) + 7,
-      active: false,
-      type: "tertiary",
-    },
-  ];
-
+      code: `hop${i + 1}`,
+      pingMs: i === 0 ? measured : null,
+      active: i === 0,
+      type,
+    }),
+  );
+  const label = target?.label.split("(")[0].trim() || "Por configurar";
+  const region = target?.label.match(/\(([^)]+)\)/)?.[1] ?? "";
   return {
-    origin: {
-      label: "O teu PC",
-      location: destRegion === "SA" ? "São Paulo - BR" : "Lisboa - PT",
-      ip: "192.168.1.100",
-    },
+    origin: { label: "O teu PC", location: "O teu PC", ip: "" },
     hops,
     destination: {
-      label: destCity,
-      region: destRegion,
-      host: target.host,
-      bestPingMs: basePing,
+      label,
+      region,
+      host: target?.host ?? "",
+      bestPingMs: measured,
     },
-    game: {
-      name: game.name,
-      icon: preset?.icon ?? "game",
-    },
+    game: { name: game.name, icon: findPresetForName(game.name)?.icon ?? "game" },
   };
 }

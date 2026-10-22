@@ -48,29 +48,19 @@ export function RouteSelectorModal({
           label: s.label,
           city: s.city,
           host: s.host,
-          pingMs: s.basePing,
         })),
       }));
     }
-    // Fallback regions from game targets
+    // Sem preset: todos os destinos configurados num único grupo.
     return [
       {
-        name: "América do Sul" as RegionKey,
-        servers: game.targets
-          .filter((t) => t.label.includes("São Paulo") || t.label.includes("BR") || t.label.includes("SA"))
-          .map((t) => ({ id: t.id, label: t.label, city: "São Paulo", host: t.host, pingMs: 14 })),
-      },
-      {
-        name: "Europa" as RegionKey,
-        servers: game.targets
-          .filter((t) => t.label.includes("Frankfurt") || t.label.includes("Madrid") || t.label.includes("EU"))
-          .map((t) => ({ id: t.id, label: t.label, city: "Frankfurt", host: t.host, pingMs: 34 })),
-      },
-      {
-        name: "América do Norte" as RegionKey,
-        servers: game.targets
-          .filter((t) => t.label.includes("Virgínia") || t.label.includes("US") || t.label.includes("NA"))
-          .map((t) => ({ id: t.id, label: t.label, city: "Virgínia", host: t.host, pingMs: 110 })),
+        name: "Destinos configurados" as RegionKey,
+        servers: game.targets.map((t) => ({
+          id: t.id,
+          label: t.label,
+          city: "",
+          host: t.host,
+        })),
       },
     ].filter((r) => r.servers.length > 0);
   }, [preset, game.targets]);
@@ -198,16 +188,8 @@ export function RouteSelectorModal({
                                 </span>
                                 <div>
                                   <strong>{s.label}</strong>
-                                  <span className="server-host">{s.city} · {s.host}</span>
+                                  <span className="server-host">{s.city ? `${s.city} · ` : ""}{s.host}</span>
                                 </div>
-                              </div>
-                              <div className="server-item-right">
-                                <span className={"ping-pill " + (s.pingMs < 30 ? "fast" : s.pingMs < 80 ? "medium" : "normal")}>
-                                  {s.pingMs} ms
-                                </span>
-                                {s.pingMs <= 15 && (
-                                  <span className="best-tag">Mais Rápido</span>
-                                )}
                               </div>
                             </div>
                           );

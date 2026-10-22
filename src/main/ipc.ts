@@ -40,6 +40,18 @@ const callSchema = z.discriminatedUnion("operation", [
   z.strictObject({ operation: z.literal("cancelTrace"), args: empty }),
   z.strictObject({ operation: z.literal("compareRoutes"), args: targetSchema }),
   z.strictObject({ operation: z.literal("cancelCompare"), args: empty }),
+  z.strictObject({ operation: z.literal("runNetworkCheck"), args: empty }),
+  z.strictObject({ operation: z.literal("scanCs2"), args: empty }),
+  z.strictObject({ operation: z.literal("cs2Status"), args: empty }),
+  z.strictObject({
+    operation: z.literal("cs2SetMode"),
+    args: z.strictObject({
+      mode: z.enum(["auto", "manual", "off"]),
+      allow: z.array(z.string().regex(/^[a-z0-9]{2,8}$/)).max(64),
+    }),
+  }),
+  z.strictObject({ operation: z.literal("cs2Uninstall"), args: empty }),
+  z.strictObject({ operation: z.literal("cancelNetworkCheck"), args: empty }),
   z.strictObject({ operation: z.literal("readHardware"), args: empty }),
   z.strictObject({
     operation: z.literal("exportSessions"),

@@ -101,6 +101,49 @@ export type RouteComparison = {
     | { kind: "relay"; relayId: string; ms: number }
     | null;
 };
+export type NetworkPhase = {
+  sent: number;
+  received: number;
+  medianMs: number | null;
+  jitterMs: number | null;
+};
+export type NetworkCheck = {
+  measuredAt: string;
+  adapterName: string | null;
+  adapterDescription: string | null;
+  wifi: boolean | null;
+  wifiSignal: number | null;
+  linkSpeed: string | null;
+  gatewayAddress: string | null;
+  gateway: NetworkPhase;
+  idle: NetworkPhase;
+  download: NetworkPhase;
+  upload: NetworkPhase;
+  downloadMbps: number | null;
+  uploadMbps: number | null;
+  downloadIncreaseMs: number | null;
+  uploadIncreaseMs: number | null;
+  bufferbloatGrade: "A+" | "A" | "B" | "C" | "D" | "F" | null;
+  advice: string[];
+};
+export type Cs2Datacenter = {
+  code: string;
+  name: string;
+  relays: string[];
+  pingMs: number | null;
+};
+export type Cs2Scan = { measuredAt: string; datacenters: Cs2Datacenter[] };
+export type Cs2Mode = "auto" | "manual" | "off";
+export type Cs2Status = {
+  installed: boolean;
+  mode: Cs2Mode;
+  ok: boolean | null;
+  allowed: string[];
+  blocked: number;
+  pings: Record<string, number>;
+  error: string | null;
+  checkedAt: string | null;
+};
 export type Settings = {
   economyMode?: boolean;
   sampleCount: number;
@@ -170,6 +213,13 @@ export interface RoutePilotAPI {
   cancelTrace(): Promise<Result<void>>;
   compareRoutes(target: Target): Promise<Result<RouteComparison>>;
   cancelCompare(): Promise<Result<void>>;
+  runNetworkCheck(): Promise<Result<NetworkCheck>>;
+  scanCs2(): Promise<Result<Cs2Scan>>;
+  cs2Status(): Promise<Result<Cs2Status>>;
+  cs2SetMode(mode: Cs2Mode, allow?: string[]): Promise<Result<Cs2Status>>;
+  cs2Uninstall(): Promise<Result<Cs2Status>>;
+  cancelNetworkCheck(): Promise<Result<void>>;
+  onNetworkProgress?(listener: (step: string) => void): () => void;
   readHardware(): Promise<Result<Hardware>>;
   exportSessions(format: "json" | "csv"): Promise<Result<string | null>>;
   checkForUpdates(): Promise<Result<{ updateAvailable: boolean; version?: string }>>;

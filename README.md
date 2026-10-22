@@ -4,7 +4,7 @@ Aplicação desktop para Windows, em português, para organizar aplicações e o
 
 ## Abrir a aplicação
 
-Executar `delivery/RoutePilot-1.3.0-Windows.exe`. A distribuição portátil extrai os seus ficheiros para uma pasta temporária; configurações e histórico ficam na pasta de dados do utilizador. Não requer Node.js para utilização.
+Executar `delivery/RoutePilot-1.4.0-Windows.exe`. A distribuição portátil extrai os seus ficheiros para uma pasta temporária; configurações e histórico ficam na pasta de dados do utilizador. Não requer Node.js para utilização.
 
 1. Adicionar uma aplicação e dar-lhe um nome. Associar um `.exe` é opcional; esse ficheiro não é executado.
 2. Configurar um ou mais hostnames/IPs conhecidos. Não colar URLs.
@@ -40,11 +40,19 @@ Jitter é a média das diferenças absolutas entre RTTs de respostas consecutiva
 
 Traceroute não garante o caminho usado pelo jogo. O destino só é confirmado se responder no último salto observado. Caminhos parciais, cancelados e respostas desconhecidas são identificados.
 
+## CS2: servidor com menor ping
+
+Na página do Counter-Strike 2, o painel **Servidores do CS2** mede os datacenters oficiais da Valve (lista `GetSDRConfig` da Steam) e mostra o ping de cada um. O interruptor **Automático** instala, com um pedido de administrador, a tarefa agendada `RoutePilot CS2`: ao iniciar sessão e a cada 6 horas mede todos os datacenters, mantém ativo o de menor ping (mais os que estão até +10 ms) e bloqueia os restantes na Firewall do Windows, só para UDP, no grupo `RoutePilot CS2`. O script elevado fica em `%ProgramData%/RoutePilot` (só administradores o alteram) e lê do pedido apenas o modo e códigos de datacenter; os IPs vêm sempre da Valve. **Remover do Windows** apaga tarefa, regras e script.
+
+## Verificar a minha rede
+
+A página **Rede** identifica Wi-Fi/cabo e sinal, mede o router, o ping com a ligação parada e durante download/upload (servidores de teste da Cloudflare, ~100–500 MB) e dá uma nota de bufferbloat com conselhos.
+
 ## Comparar rotas com relays próprios
 
 Em **Definições → Servidores de passagem** podes registar servidores teus que corram `relay/server.mjs` (instruções em [relay/README.md](relay/README.md)). Na página de cada jogo, **Comparar rotas** mede o ping direto e o caminho estimado via cada relay (PC→relay + relay→destino), e indica qual é mais rápido. Os pedidos são UDP assinados com HMAC; o token fica guardado em `state.json` neste PC.
 
-**Esta versão não encaminha nem otimiza o tráfego dos jogos.** Não implementa túnel, relays, multipath, login ou subscrições. Uma função semelhante a um serviço de otimização exige infraestrutura própria e outro subsistema. Não altera DNS, firewall, rotas globais, adaptadores ou drivers.
+**A aplicação não encaminha o tráfego dos jogos.** O relay (`relay/server.mjs`) já sabe reencaminhar UDP, mas o cliente de túnel no Windows ainda não existe. Não altera DNS, rotas globais, adaptadores ou drivers; a firewall só é alterada pelo modo automático do CS2, quando o ativas.
 
 ## Dados e limites
 

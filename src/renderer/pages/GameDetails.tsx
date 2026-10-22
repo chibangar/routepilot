@@ -27,6 +27,7 @@ import {
 } from "../components/UI";
 import { RouteDiagram } from "../components/RouteDiagram";
 import { RouteCompare } from "../components/RouteCompare";
+import { Cs2Datacenters, isCs2 } from "../components/Cs2Datacenters";
 import { RouteSelectorModal } from "../components/RouteSelectorModal";
 import { getDefaultTargetsForGame } from "../../shared/game-presets";
 
@@ -100,12 +101,9 @@ export function GameDetails({ id }: { id: string }) {
 
   async function handleReoptimize() {
     setReoptimizing(true);
-    notify("A testar rotas e a calcular o menor ping possível...");
     try {
-      if (game) {
-        await act(() => window.routepilot.startSession(id));
-      }
-      notify("Rota reotimizada com sucesso! Menor ping ativo.");
+      if (game && (await act(() => window.routepilot.startSession(id))))
+        notify("A medir todos os destinos em paralelo…");
     } finally {
       setReoptimizing(false);
       await refresh();
@@ -176,7 +174,7 @@ export function GameDetails({ id }: { id: string }) {
   }
 
   // Extract clean city or label for server pill
-  const targetLabelClean = target?.label ? target.label.split("(")[0].trim() : "São Paulo";
+  const targetLabelClean = target?.label ? target.label.split("(")[0].trim() : "Por configurar";
 
   return (
     <div className="game-details-page">
@@ -257,6 +255,8 @@ export function GameDetails({ id }: { id: string }) {
       <div className="destination-panel sr-only" aria-hidden="true">
         <h3>{target?.label ?? "Por configurar"}</h3>
       </div>
+
+      {isCs2(game.name) && <Cs2Datacenters disabled={busy} />}
 
       {/* Interactive Multipath Routing Diagram (matching Image 2!) */}
       <section className="diagram-section-card">

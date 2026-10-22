@@ -355,7 +355,7 @@
           <path d="M2 12h20"/>
         </svg>
         RoutePilot
-        <span class="logo-badge">v1.3.0</span>
+        <span class="logo-badge">v1.4.0</span>
       </div>
       <nav class="nav-links">
         <a href="#funcionalidades">Funcionalidades</a>
@@ -374,16 +374,16 @@
     <div class="container">
       <div class="pill">
         <span class="pill-dot"></span>
-        Versão Oficial 1.3.0 · Atualizações Automáticas via GitHub
+        Versão Oficial 1.4.0 · Atualizações Automáticas via GitHub
       </div>
       <h1>A tua ligação nos jogos,<br><span>em perspetiva.</span></h1>
       <p>
-        Mede o teu ping real em servidores de Counter-Strike 2, Valorant, EA FC e mais. Seleção automática da menor latência, traceroute em tempo real e deteção direta de jogos da Steam.
+        No CS2, encontra sozinho o servidor oficial da Valve com menor ping e põe-te a jogar só nele. Mede o teu ping real em Valorant, EA FC e mais, e descobre o que está a dar lag na tua rede de casa.
       </p>
 
       <div class="hero-actions">
         <!-- Direct Installer with Auto-Update -->
-        <a id="download-setup" href="https://github.com/chibangar/routepilot/releases/latest/download/RoutePilot-Setup-1.3.0.exe" class="btn btn-primary">
+        <a id="download-setup" href="https://github.com/chibangar/routepilot/releases/latest/download/RoutePilot-Setup-1.4.0.exe" class="btn btn-primary">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
             <polyline points="7 10 12 15 17 10"/>
@@ -393,7 +393,7 @@
         </a>
 
         <!-- Portable Standalone -->
-        <a id="download-portable" href="https://github.com/chibangar/routepilot/releases/latest/download/RoutePilot-1.3.0-Windows.exe" class="btn btn-secondary">
+        <a id="download-portable" href="https://github.com/chibangar/routepilot/releases/latest/download/RoutePilot-1.4.0-Windows.exe" class="btn btn-secondary">
           Versão Portátil (.exe)
         </a>
       </div>
@@ -452,6 +452,18 @@
         </div>
 
         <div class="card">
+          <div class="card-icon">🎯</div>
+          <h3>CS2: Servidor com Menor Ping, Automático</h3>
+          <p>Mede os datacenters oficiais da Valve em ~3 segundos e mantém ativo o mais rápido; os outros ficam bloqueados na Firewall do Windows, para o matchmaking só te pôr lá. Atualiza sozinho ao iniciar sessão e a cada 6 horas, sem a app aberta.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📶</div>
+          <h3>Verificar a Minha Rede</h3>
+          <p>Deteta Wi-Fi fraco, router lento e bufferbloat (o ping que sobe quando alguém faz downloads), com nota de A+ a F e conselhos concretos.</p>
+        </div>
+
+        <div class="card">
           <div class="card-icon">🛰️</div>
           <h3>Comparar Rotas com Relays Próprios</h3>
           <p>Instala o relay do RoutePilot num servidor teu (VPS) e compara o ping direto com o caminho via relay: PC → relay + relay → servidor do jogo. Pedidos UDP assinados com HMAC.</p>
@@ -459,8 +471,8 @@
 
         <div class="card">
           <div class="card-icon">🛡️</div>
-          <h3>100% Local e Seguro</h3>
-          <p>Não instala adaptadores de rede virtuais, não altera DNS, não mexe na firewall e não requer criação de conta nem mensalidade.</p>
+          <h3>Sem Conta nem Mensalidade</h3>
+          <p>Não instala adaptadores de rede virtuais nem altera DNS. Só mexe na Firewall do Windows se ativares o modo automático do CS2, e tudo se remove com um botão.</p>
         </div>
       </div>
 
@@ -493,6 +505,11 @@
         <div class="faq-item">
           <h4>Como funcionam as atualizações automáticas?</h4>
           <p>Ao utilizares o instalador do RoutePilot, a aplicação verifica novidades no repositório do GitHub a cada 30 minutos. Quando uma nova versão é publicada, é descarregada silenciosamente e instalada quando fechas ou reinicias a aplicação.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>Como funciona o modo automático do CS2?</h4>
+          <p>Ao ligá-lo, o Windows pede permissão de administrador uma vez e o RoutePilot instala a tarefa "RoutePilot CS2". Ao iniciar sessão e a cada 6 horas, ela mede os servidores oficiais da Valve, deixa ativo o de menor ping (e os que estão até +10 ms) e bloqueia os outros só para UDP. Demora poucos segundos e não fica a correr. Encontrar partida pode demorar um pouco mais; Dota 2 e Deadlock também ficam limitados. "Remover do Windows" apaga a tarefa e as regras.</p>
         </div>
 
         <div class="faq-item">

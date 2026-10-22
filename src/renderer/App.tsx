@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   Activity,
   Clock3,
+  Gauge,
   HelpCircle,
   House,
   Radio,
@@ -18,12 +19,14 @@ import { Home } from "./pages/Home";
 import { Connections } from "./pages/Connections";
 import { GameDetails } from "./pages/GameDetails";
 import { History } from "./pages/History";
+import { NetworkPage } from "./pages/Network";
 import { SettingsPage, Help } from "./pages/Settings";
 import { isEconomyMode } from "../shared/performance";
 
 const items = [
   { page: "home", label: "Início", icon: House },
   { page: "connections", label: "Aplicações", icon: Radio },
+  { page: "network", label: "Rede", icon: Gauge },
   { page: "history", label: "Histórico", icon: Clock3 },
 ] as const;
 
@@ -286,6 +289,8 @@ export function App() {
               <Connections />
             ) : page === "details" ? (
               <GameDetails id={gameId} />
+            ) : page === "network" ? (
+              <NetworkPage />
             ) : page === "history" ? (
               <History />
             ) : page === "settings" ? (

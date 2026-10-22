@@ -89,24 +89,26 @@ export class SessionManager {
   ): Promise<void> {
     try {
       if (game.mode === "automatic") {
-        session.selection = [];
-        for (const target of game.targets) {
-          const candidate: { target: typeof target; samples: Sample[] } = {
-            target,
-            samples: [],
-          };
-          session.selection.push(candidate);
-          for (let i = 0; i < 3 && !signal.aborted; i++) {
-            const sample = await this.probe(
-              target.host,
-              settings.timeoutMs,
-              signal,
-            );
-            if (!signal.aborted)
-              candidate.samples.push({ ...sample, index: i });
-          }
-          if (signal.aborted) break;
-        }
+        const selection = game.targets.map((target) => ({
+          target,
+          samples: [] as Sample[],
+        }));
+        session.selection = selection;
+        // Todos os destinos são sondados em paralelo: um destino sem resposta
+        // deixa de atrasar os restantes.
+        await Promise.all(
+          selection.map(async (candidate) => {
+            for (let i = 0; i < 3 && !signal.aborted; i++) {
+              const sample = await this.probe(
+                candidate.target.host,
+                settings.timeoutMs,
+                signal,
+              );
+              if (!signal.aborted)
+                candidate.samples.push({ ...sample, index: i });
+            }
+          }),
+        );
         if (!signal.aborted) {
           const candidates = session.selection
             .map((c) => ({
