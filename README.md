@@ -40,6 +40,10 @@ Jitter é a média das diferenças absolutas entre RTTs de respostas consecutiva
 
 Traceroute não garante o caminho usado pelo jogo. O destino só é confirmado se responder no último salto observado. Caminhos parciais, cancelados e respostas desconhecidas são identificados.
 
+## Comparar rotas com relays próprios
+
+Em **Definições → Servidores de passagem** podes registar servidores teus que corram `relay/server.mjs` (instruções em [relay/README.md](relay/README.md)). Na página de cada jogo, **Comparar rotas** mede o ping direto e o caminho estimado via cada relay (PC→relay + relay→destino), e indica qual é mais rápido. Os pedidos são UDP assinados com HMAC; o token fica guardado em `state.json` neste PC.
+
 **Esta versão não encaminha nem otimiza o tráfego dos jogos.** Não implementa túnel, relays, multipath, login ou subscrições. Uma função semelhante a um serviço de otimização exige infraestrutura própria e outro subsistema. Não altera DNS, firewall, rotas globais, adaptadores ou drivers.
 
 ## Dados e limites

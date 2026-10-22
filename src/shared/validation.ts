@@ -73,12 +73,25 @@ export const gameSchema = z
         message: "Destino selecionado inexistente",
       });
   });
-export const settingsSchema = z.strictObject({
-  economyMode: z.boolean().optional(),
-  sampleCount: z.number().int().min(1).max(120),
-  timeoutMs: z.number().int().min(250).max(5000),
-  intervalMs: z.number().int().min(250).max(10000),
+export const relaySchema = z.strictObject({
+  id,
+  label: z.string().trim().min(1).max(80),
+  host: z.string().refine((v) => validateHost(v).ok, "Hostname ou IP inválido"),
+  port: z.number().int().min(1).max(65535),
+  token: z.string().min(32).max(256),
 });
+export const settingsSchema = z
+  .strictObject({
+    economyMode: z.boolean().optional(),
+    sampleCount: z.number().int().min(1).max(120),
+    timeoutMs: z.number().int().min(250).max(5000),
+    intervalMs: z.number().int().min(250).max(10000),
+    relays: z.array(relaySchema).max(8).optional(),
+  })
+  .refine(
+    (s) => new Set((s.relays ?? []).map((r) => r.id)).size === (s.relays ?? []).length,
+    "IDs de relays repetidos",
+  );
 const numberOrNull = z.number().finite().nonnegative().nullable();
 const sampleSchema = z.strictObject({
   index: z.number().int().nonnegative(),

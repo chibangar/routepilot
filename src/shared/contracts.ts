@@ -75,11 +75,38 @@ export type Session = {
   metrics: Metrics;
   selection?: { target: Target; samples: Sample[] }[];
 };
+export type Relay = {
+  id: string;
+  label: string;
+  host: string;
+  port: number;
+  token: string;
+};
+export type RelayResult = {
+  relayId: string;
+  label: string;
+  relayRttMs: number | null;
+  targetRttMs: number | null;
+  totalMs: number | null;
+  error: string | null;
+};
+export type RouteComparison = {
+  target: Target;
+  measuredAt: string;
+  directMs: number | null;
+  directError: string | null;
+  relays: RelayResult[];
+  best:
+    | { kind: "direct"; ms: number }
+    | { kind: "relay"; relayId: string; ms: number }
+    | null;
+};
 export type Settings = {
   economyMode?: boolean;
   sampleCount: number;
   timeoutMs: number;
   intervalMs: number;
+  relays?: Relay[];
 };
 export type Store = {
   version: 1;
@@ -121,6 +148,7 @@ export type RuntimeState = {
   selecting: boolean;
   traceActive: boolean;
   dataPath: string;
+  appVersion?: string;
 };
 export interface RoutePilotAPI {
   discoverGames(): Promise<Result<DiscoveryReport>>;
@@ -140,6 +168,8 @@ export interface RoutePilotAPI {
   cancelSession(id: string): Promise<Result<void>>;
   startTrace(target: Target): Promise<Result<Trace>>;
   cancelTrace(): Promise<Result<void>>;
+  compareRoutes(target: Target): Promise<Result<RouteComparison>>;
+  cancelCompare(): Promise<Result<void>>;
   readHardware(): Promise<Result<Hardware>>;
   exportSessions(format: "json" | "csv"): Promise<Result<string | null>>;
   checkForUpdates(): Promise<Result<{ updateAvailable: boolean; version?: string }>>;

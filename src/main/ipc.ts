@@ -38,6 +38,8 @@ const callSchema = z.discriminatedUnion("operation", [
   }),
   z.strictObject({ operation: z.literal("startTrace"), args: targetSchema }),
   z.strictObject({ operation: z.literal("cancelTrace"), args: empty }),
+  z.strictObject({ operation: z.literal("compareRoutes"), args: targetSchema }),
+  z.strictObject({ operation: z.literal("cancelCompare"), args: empty }),
   z.strictObject({ operation: z.literal("readHardware"), args: empty }),
   z.strictObject({
     operation: z.literal("exportSessions"),

@@ -100,8 +100,8 @@ export function App() {
       await refresh();
       notify(
         res.added > 0
-          ? `Foram detetados e adicionados ${res.added} novos jogos com as melhores rotas!`
-          : "Todos os jogos instalados já estão sincronizados com as melhores rotas.",
+          ? `Foram detetados e adicionados ${res.added} novos jogos.`
+          : "Nenhum jogo novo encontrado.",
       );
     }
   }, [act, refresh, notify]);
@@ -211,7 +211,7 @@ export function App() {
             <div className="avatar" title="Perfil local">
               RP
             </div>
-            <small>v5.21.2</small>
+            <small>{runtime?.appVersion ? `v${runtime.appVersion}` : ""}</small>
           </div>
         </aside>
 
@@ -251,13 +251,15 @@ export function App() {
                   }}
                 />
               </label>
-              <div
-                className="eco-badge"
-                title="Modo ultra-leve ativo: 0% de impacto na sua CPU e FPS"
-              >
-                <Zap size={14} />
-                <span>0.1% CPU</span>
-              </div>
+              {isEconomyMode(runtime?.store.settings) && (
+                <div
+                  className="eco-badge"
+                  title="Modo económico: atualizações menos frequentes"
+                >
+                  <Zap size={14} />
+                  <span>Modo económico</span>
+                </div>
+              )}
             </div>
           </header>
 
@@ -294,7 +296,7 @@ export function App() {
             <footer className="page-footer">
               <span>
                 <ShieldCheck size={13} />
-                Os teus dados ficam neste computador. Sem telemetria e com zero impacto nos teus jogos.
+                Os teus dados ficam neste computador. Sem telemetria.
               </span>
               <span>RoutePilot · Otimização Inteligente de Rotas</span>
             </footer>

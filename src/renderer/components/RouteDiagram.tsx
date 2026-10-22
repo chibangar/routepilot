@@ -25,7 +25,7 @@ export function RouteDiagram({
           <span>Diagrama de rota do jogo</span>
           <span className="diagram-badge">
             <CheckCircle2 size={13} />
-            Melhor Rota Ativa
+            {ping ? "Ping medido" : "Estimativa"}
           </span>
         </div>
         {onRefresh && (
@@ -119,7 +119,10 @@ export function RouteDiagram({
       <div className="diagram-footer-note">
         <span className="active-dot" />
         <span>
-          O RoutePilot selecionou a rota <strong>Automático Sa</strong> com menor latência estimada ({diagram.destination.bestPingMs} ms).
+          {ping
+            ? <>Menor ping medido até <strong>{diagram.destination.label}</strong>: {diagram.destination.bestPingMs} ms.</>
+            : <>Valores estimados — inicia um diagnóstico para medir o ping real até <strong>{diagram.destination.label}</strong>.</>}
+          {" "}O tráfego do jogo não é encaminhado por estes nós.
         </span>
       </div>
     </div>

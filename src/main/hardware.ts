@@ -31,16 +31,16 @@ export function readHardware(): Hardware {
   previousAt = at;
   previous = next;
   const memoryTotalBytes = totalmem();
-  const speed = processors[0]?.speed ?? 4400;
+  const speed = processors[0]?.speed;
   return {
     sampledAt: new Date().toISOString(),
     sampleWindowMs,
     cpuPercent,
     cpuName: processors[0]?.model ?? "Processador desconhecido",
     cpuCount: processors.length,
-    cpuMhz: speed,
-    gpuPercent: 35,
-    gpuMhz: 2505,
+    cpuMhz: speed && speed > 0 ? speed : null,
+    gpuPercent: null,
+    gpuMhz: null,
     memoryTotalBytes,
     memoryUsedBytes: memoryTotalBytes - freemem(),
   };

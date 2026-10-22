@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useApp } from "../context";
 import { PageHeading, SectionTitle } from "../components/UI";
+import { RelaySettings } from "../components/RelaySettings";
 import type { Settings } from "../../shared/contracts";
 import { isEconomyMode } from "../../shared/performance";
 export function SettingsPage() {
@@ -137,6 +138,10 @@ export function SettingsPage() {
             <span>ms</span>
           </div>
         </div>
+        <RelaySettings
+          relays={settings.relays ?? []}
+          onChange={(relays) => setSettings({ ...settings, relays })}
+        />
         <div className="settings-footer">
           <button type="submit" className="button primary" disabled={saving}>
             <Check size={17} />

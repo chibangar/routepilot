@@ -26,6 +26,7 @@ import {
   stateName,
 } from "../components/UI";
 import { RouteDiagram } from "../components/RouteDiagram";
+import { RouteCompare } from "../components/RouteCompare";
 import { RouteSelectorModal } from "../components/RouteSelectorModal";
 import { getDefaultTargetsForGame } from "../../shared/game-presets";
 
@@ -267,6 +268,8 @@ export function GameDetails({ id }: { id: string }) {
           reoptimizing={reoptimizing}
         />
       </section>
+
+      <RouteCompare target={target} disabled={busy} />
 
       {/* Observed Quality / Ping Chart */}
       <div className="details-metrics-panel">

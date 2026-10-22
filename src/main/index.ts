@@ -9,6 +9,7 @@ import {
   type Result,
   type Store,
   type Trace,
+  type RouteComparison,
   type DiscoveryReport,
   type DiscoveredGame,
 } from "../shared/contracts";
@@ -16,6 +17,7 @@ import { authorizeSender, validateCall } from "./ipc";
 import { loadStore, saveStore, defaultStore } from "./store";
 import { SessionManager } from "./diagnostics/session-manager";
 import { traceHost } from "./diagnostics/trace";
+import { compareRoutes } from "./diagnostics/relay";
 import { readHardware } from "./hardware";
 import { exportSessions } from "./export";
 import { scanGameSources, localDirectory, knownExecutable } from "./discovery";
@@ -49,6 +51,8 @@ let finished = false;
 const chosenExecutables = new Set<string>();
 let traceController: AbortController | null = null;
 let traceWork: Promise<Result<Trace>> | null = null;
+let compareController: AbortController | null = null;
+let compareWork: Promise<RouteComparison> | null = null;
 let mutations = Promise.resolve();
 let discoveryController: AbortController | null = null;
 let discoveryWork: Promise<Result<DiscoveryReport>> | null = null;
@@ -126,8 +130,9 @@ async function shutdown() {
   if (shuttingDown) return;
   shuttingDown = true;
   traceController?.abort();
+  compareController?.abort();
   discoveryController?.abort();
-  await Promise.all([manager.stopAll(), traceWork, discoveryWork]);
+  await Promise.all([manager.stopAll(), traceWork, compareWork, discoveryWork]);
   await mutations;
   if (manager.pendingSession) {
     await manager.retryPersistence();
@@ -466,6 +471,7 @@ if (!app.requestSingleInstanceLock()) {
                       selecting: manager.selecting,
                       traceActive: !!traceWork,
                       dataPath: app.getPath("userData"),
+                      appVersion: app.getVersion(),
                     });
             case "saveGame": {
               const game = call.args;
@@ -535,10 +541,10 @@ if (!app.requestSingleInstanceLock()) {
               });
             case "startSession": {
               if (loadError) return fail("invalid_store", loadError);
-              if (traceWork)
+              if (traceWork || compareWork)
                 return fail(
                   "busy",
-                  "Aguarde o traceroute terminar ou cancele-o.",
+                  "Aguarde o diagnóstico em curso terminar ou cancele-o.",
                 );
               const game = store.games.find((g) => g.id === call.args.id);
               return game
@@ -548,7 +554,7 @@ if (!app.requestSingleInstanceLock()) {
             case "cancelSession":
               return manager.cancel(call.args.id);
             case "startTrace": {
-              if (traceWork || manager.active)
+              if (traceWork || compareWork || manager.active)
                 return fail("busy", "Já existe um diagnóstico ativo.");
               traceController = new AbortController();
               traceWork = traceHost(call.args, traceController.signal);
@@ -559,6 +565,28 @@ if (!app.requestSingleInstanceLock()) {
                 traceWork = null;
               }
             }
+            case "compareRoutes": {
+              if (traceWork || compareWork || manager.active)
+                return fail("busy", "Já existe um diagnóstico ativo.");
+              const relays = store.settings.relays ?? [];
+              compareController = new AbortController();
+              compareWork = compareRoutes(
+                call.args,
+                relays,
+                store.settings.timeoutMs,
+                compareController.signal,
+              );
+              try {
+                return ok(await compareWork);
+              } finally {
+                compareController = null;
+                compareWork = null;
+              }
+            }
+            case "cancelCompare":
+              compareController?.abort();
+              await compareWork;
+              return ok(undefined);
             case "cancelTrace":
               traceController?.abort();
               await traceWork;

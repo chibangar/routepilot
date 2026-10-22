@@ -15,7 +15,7 @@ import { useApp } from "../context";
 import { useHardware } from "../use-hardware";
 import { isEconomyMode } from "../../shared/performance";
 import { GameIcon, number } from "../components/UI";
-import type { Game } from "../../shared/contracts";
+import type { Game, Session } from "../../shared/contracts";
 
 export function Home() {
   const { runtime, active, live, navigate, edit, act, refresh, notify, toggleGame, autoDetect } =
@@ -71,17 +71,31 @@ export function Home() {
   const nextSlide = () => setSlide((s) => (s + 1) % slides.length);
   const prevSlide = () => setSlide((s) => (s - 1 + slides.length) % slides.length);
 
-  // Selected game for last session display
-  const lastGame =
-    games.find((g) => g.id === lastSession?.gameId) ??
-    games[0] ?? {
-      id: "val",
-      name: "Valorant",
-      mode: "automatic" as const,
-      targets: [],
-      selectedTargetId: null,
-      executablePath: null,
-    };
+  const lastGame: Game | null = lastSession
+    ? (games.find((g) => g.id === lastSession.gameId) ?? {
+        id: lastSession.gameId,
+        name: lastSession.target.label,
+        mode: "manual",
+        targets: [],
+        selectedTargetId: null,
+        executablePath: null,
+      })
+    : null;
+  const metric = (value: number | null | undefined, unit: string) =>
+    value === null || value === undefined ? "—" : `${number(value, 0)}${unit}`;
+
+  const removeTile = async (game: Game) => {
+    if (!window.confirm(`Remover ${game.name} das conexões?`)) return;
+    if (await act(() => window.routepilot.removeGame(game.id))) {
+      await refresh();
+      notify(`${game.name} foi removido.`);
+    }
+  };
+
+  const memoryPercent =
+    hardware && hardware.memoryTotalBytes > 0
+      ? (hardware.memoryUsedBytes / hardware.memoryTotalBytes) * 100
+      : null;
 
   return (
     <div className="home-page">
@@ -110,10 +124,11 @@ export function Home() {
               >
                 <button
                   className="tile-close-btn"
-                  title="Remover ou pausar ligação"
+                  title="Remover ligação"
+                  aria-label={`Remover ${game.name}`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    void toggleGame(game.id, !isEnabled);
+                    void removeTile(game);
                   }}
                 >
                   <X size={13} />
@@ -213,69 +228,58 @@ export function Home() {
           </div>
 
           <div className="session-stats-card">
-            <div className="session-stats-header">
-              <div className="session-game-info">
-                <GameIcon game={lastGame} />
-                <strong>{lastGame.name}</strong>
-              </div>
-              <button
-                className="rate-connection-btn"
-                onClick={() => notify("Obrigado pela avaliação da sua conexão!")}
-              >
-                <Star size={14} fill="currentColor" /> Avaliar conexão
-              </button>
-            </div>
+            {lastSession && lastGame ? (
+              <>
+                <div className="session-stats-header">
+                  <div className="session-game-info">
+                    <GameIcon game={lastGame} />
+                    <strong>{lastGame.name}</strong>
+                  </div>
+                  <button
+                    className="rate-connection-btn"
+                    onClick={() => navigate("history")}
+                  >
+                    <Star size={14} fill="currentColor" /> Ver histórico
+                  </button>
+                </div>
 
-            <div className="session-duration">
-              Duração{" "}
-              <strong>
-                {lastSession?.startedAt && lastSession.endedAt
-                  ? "09:50"
-                  : "09:50"}
-              </strong>
-            </div>
+                <div className="session-duration">
+                  Duração <strong>{sessionDuration(lastSession)}</strong>
+                </div>
 
-            <div className="session-metrics-row">
-              <div className="metric-box">
-                <span className="metric-box-label">Ping mais baixo</span>
-                <strong className="metric-box-value highlight">
-                  {lastSession?.metrics.minMs !== null &&
-                  lastSession?.metrics.minMs !== undefined
-                    ? `${number(lastSession.metrics.minMs, 0)} ms`
-                    : "33 ms"}
-                </strong>
+                <div className="session-metrics-row">
+                  <div className="metric-box">
+                    <span className="metric-box-label">Ping mais baixo</span>
+                    <strong className="metric-box-value highlight">
+                      {metric(lastSession.metrics.minMs, " ms")}
+                    </strong>
+                  </div>
+                  <div className="metric-box">
+                    <span className="metric-box-label">Ping médio</span>
+                    <strong className="metric-box-value">
+                      {metric(lastSession.metrics.meanMs, " ms")}
+                    </strong>
+                  </div>
+                  <div className="metric-box">
+                    <span className="metric-box-label">Jitter médio</span>
+                    <strong className="metric-box-value">
+                      {metric(lastSession.metrics.jitterMs, " ms")}
+                    </strong>
+                  </div>
+                  <div className="metric-box">
+                    <span className="metric-box-label">Sem resposta</span>
+                    <strong className="metric-box-value safe">
+                      {metric(lastSession.metrics.noReplyPercent, "%")}
+                    </strong>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="session-duration">
+                Ainda não há sessões. Abre uma conexão e inicia um diagnóstico
+                para ver ping, jitter e respostas aqui.
               </div>
-
-              <div className="metric-box">
-                <span className="metric-box-label">Ping médio</span>
-                <strong className="metric-box-value">
-                  {lastSession?.metrics.meanMs !== null &&
-                  lastSession?.metrics.meanMs !== undefined
-                    ? `${number(lastSession.metrics.meanMs, 0)} ms`
-                    : "36 ms"}
-                </strong>
-              </div>
-
-              <div className="metric-box">
-                <span className="metric-box-label">Jitter médio</span>
-                <strong className="metric-box-value">
-                  {lastSession?.metrics.jitterMs !== null &&
-                  lastSession?.metrics.jitterMs !== undefined
-                    ? `${number(lastSession.metrics.jitterMs, 0)} ms`
-                    : "1 ms"}
-                </strong>
-              </div>
-
-              <div className="metric-box">
-                <span className="metric-box-label">Perda de pacotes</span>
-                <strong className="metric-box-value safe">
-                  {lastSession?.metrics.noReplyPercent !== null &&
-                  lastSession?.metrics.noReplyPercent !== undefined
-                    ? `${number(lastSession.metrics.noReplyPercent, 0)}%`
-                    : "0%"}
-                </strong>
-              </div>
-            </div>
+            )}
           </div>
         </section>
       </div>
@@ -293,10 +297,9 @@ export function Home() {
         </div>
 
         <div className="hardware-gauges-grid">
-          {/* CPU Gauge Card */}
           <div className="gauge-card">
             <div className="gauge-clock">
-              {hardware?.cpuMhz ? `${hardware.cpuMhz} MHz` : "4447 MHz"}
+              {hardware?.cpuMhz ? `${hardware.cpuMhz} MHz` : "—"}
             </div>
             <div className="circular-gauge">
               <svg viewBox="0 0 100 100" className="gauge-svg">
@@ -308,14 +311,16 @@ export function Home() {
                   className="gauge-val cpu-val"
                   style={{
                     strokeDasharray: "264",
-                    strokeDashoffset: `${
-                      264 - (264 * (hardware?.cpuPercent ?? 7)) / 100
-                    }`,
+                    strokeDashoffset: `${264 - (264 * (hardware?.cpuPercent ?? 0)) / 100}`,
                   }}
                 />
               </svg>
               <div className="gauge-center">
-                <strong>{hardware?.cpuPercent ? Math.round(hardware.cpuPercent) : 7}%</strong>
+                <strong>
+                  {hardware?.cpuPercent != null
+                    ? `${Math.round(hardware.cpuPercent)}%`
+                    : "—"}
+                </strong>
               </div>
             </div>
             <div className="gauge-label">
@@ -323,9 +328,10 @@ export function Home() {
             </div>
           </div>
 
-          {/* GPU Gauge Card */}
           <div className="gauge-card">
-            <div className="gauge-clock">2505 MHz</div>
+            <div className="gauge-clock">
+              {hardware?.gpuMhz ? `${hardware.gpuMhz} MHz` : "—"}
+            </div>
             <div className="circular-gauge">
               <svg viewBox="0 0 100 100" className="gauge-svg">
                 <circle cx="50" cy="50" r="42" className="gauge-bg" />
@@ -336,20 +342,25 @@ export function Home() {
                   className="gauge-val gpu-val"
                   style={{
                     strokeDasharray: "264",
-                    strokeDashoffset: `${264 - (264 * 35) / 100}`,
+                    strokeDashoffset: `${264 - (264 * (hardware?.gpuPercent ?? 0)) / 100}`,
                   }}
                 />
               </svg>
               <div className="gauge-center">
-                <strong>35%</strong>
+                <strong>
+                  {hardware?.gpuPercent != null
+                    ? `${Math.round(hardware.gpuPercent)}%`
+                    : "—"}
+                </strong>
               </div>
             </div>
             <div className="gauge-label">
-              <span>Placa Gráfica</span>
+              <span>
+                Placa Gráfica{hardware?.gpuPercent == null ? " (não medida)" : ""}
+              </span>
             </div>
           </div>
 
-          {/* RAM Bar Card */}
           <div className="gauge-card ram-card">
             <div className="ram-card-top">
               <span className="ram-title">Memória RAM</span>
@@ -358,20 +369,14 @@ export function Home() {
                   ? `${(hardware.memoryUsedBytes / 1073741824).toFixed(1)} GB / ${(
                       hardware.memoryTotalBytes / 1073741824
                     ).toFixed(1)} GB`
-                  : "11.5 GB / 20.5 GB"}
+                  : "—"}
               </strong>
             </div>
 
             <div className="ram-progress-track">
               <div
                 className="ram-progress-fill"
-                style={{
-                  width: `${
-                    hardware
-                      ? (hardware.memoryUsedBytes / hardware.memoryTotalBytes) * 100
-                      : 36
-                  }%`,
-                }}
+                style={{ width: `${memoryPercent ?? 0}%` }}
               />
             </div>
 
@@ -379,29 +384,21 @@ export function Home() {
               <div className="ram-tag">
                 <span className="dot dot-used" />
                 <span>
-                  {hardware
-                    ? `${Math.round(
-                        (hardware.memoryUsedBytes / hardware.memoryTotalBytes) * 100,
-                      )}%`
-                    : "36%"}
+                  {memoryPercent !== null ? `${Math.round(memoryPercent)}%` : "—"}
                 </span>
               </div>
               <div className="ram-tag">
                 <span className="dot dot-free" />
                 <span>
-                  {hardware
-                    ? `${Math.round(
-                        100 -
-                          (hardware.memoryUsedBytes / hardware.memoryTotalBytes) *
-                            100,
-                      )}%`
-                    : "64%"}
+                  {memoryPercent !== null
+                    ? `${Math.round(100 - memoryPercent)}%`
+                    : "—"}
                 </span>
               </div>
               <span className="ram-total">
                 {hardware
                   ? `${Math.round(hardware.memoryTotalBytes / 1073741824)} GB`
-                  : "32 GB"}
+                  : "—"}
               </span>
             </div>
           </div>
@@ -409,4 +406,15 @@ export function Home() {
       </section>
     </div>
   );
+}
+
+function sessionDuration(session: Session): string {
+  const start = Date.parse(session.startedAt);
+  const end = session.endedAt ? Date.parse(session.endedAt) : Date.now();
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start)
+    return "—";
+  const total = Math.round((end - start) / 1000);
+  const mm = String(Math.floor(total / 60)).padStart(2, "0");
+  const ss = String(total % 60).padStart(2, "0");
+  return `${mm}:${ss}`;
 }

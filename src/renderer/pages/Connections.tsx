@@ -172,12 +172,12 @@ export function Connections() {
             Adicione um app para configurar uma rota otimizada, melhorando a estabilidade e o ping.
           </p>
           <div className="empty-quick-setup">
-            <span>Need help? Run </span>
+            <span>Precisas de ajuda? Usa a </span>
             <button
               className="quick-setup-link"
               onClick={() => void autoDetect()}
             >
-              Quick Setup
+              Configuração rápida
             </button>
           </div>
         </div>
