@@ -15,6 +15,7 @@ export function NetworkPage() {
   const [result, setResult] = useState<NetworkCheck | null>(null);
   const [running, setRunning] = useState(false);
   const [step, setStep] = useState("");
+  const [withLoad, setWithLoad] = useState(true);
 
   useEffect(
     () => window.routepilot?.onNetworkProgress?.((s) => setStep(s)),
@@ -25,7 +26,7 @@ export function NetworkPage() {
     setRunning(true);
     setStep("A iniciar…");
     try {
-      const r = await act(() => window.routepilot.runNetworkCheck());
+      const r = await act(() => window.routepilot.runNetworkCheck(withLoad));
       if (r) setResult(r);
     } finally {
       setRunning(false);
@@ -50,9 +51,20 @@ export function NetworkPage() {
             </h3>
             <p>
               Mede o router, o ping com a ligação parada e o ping durante um
-              download e um upload. A carga usa os servidores de teste da
-              Cloudflare (speed.cloudflare.com) e consome cerca de 100–500 MB.
+              download e um upload curtos (servidores de teste da Cloudflare,
+              no máximo ~80 MB). Se a ligação deixar de responder, a carga
+              pára logo. Em ligações tarifadas ou móveis (4G/5G, hotspot) a
+              carga não é feita.
             </p>
+            <label className="cs2-auto-toggle network-load-toggle">
+              <input
+                type="checkbox"
+                checked={withLoad}
+                disabled={running}
+                onChange={(e) => setWithLoad(e.target.checked)}
+              />
+              <span>Incluir teste com carga (bufferbloat)</span>
+            </label>
           </div>
           {running ? (
             <button
@@ -73,6 +85,24 @@ export function NetworkPage() {
       {result && (
         <>
           <SectionTitle>Resultado</SectionTitle>
+          {result.dropped && (
+            <div className={"network-alert " + (result.recovered ? "warn" : "bad")} role="alert">
+              <strong>
+                {result.recovered
+                  ? "A ligação caiu durante o teste e já voltou."
+                  : "A ligação caiu durante o teste e ainda não voltou."}
+              </strong>
+              <span>
+                {result.recovered
+                  ? "O RoutePilot parou a carga assim que deixou de haver resposta. O teu router ou a operadora não aguentam a ligação cheia."
+                  : "O RoutePilot já parou toda a carga. Espera uns segundos; se não voltar, desliga e liga o Wi-Fi/cabo ou reinicia o router."}
+              </span>
+            </div>
+          )}
+          <p className="route-compare-note">
+            Dados usados neste teste: {result.dataUsedMb} MB
+            {result.metered ? " · ligação tarifada/móvel" : ""}.
+          </p>
           <div className="network-summary">
             <div className="network-card">
               <span>Ligação</span>

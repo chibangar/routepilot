@@ -4370,3 +4370,24 @@ td {
 .route-compare-table td svg {
   vertical-align: -2px;
 }
+.network-load-toggle {
+  margin-top: 10px;
+  font-weight: 500;
+}
+.network-alert {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+.network-alert.warn {
+  background: rgba(245, 197, 66, 0.1);
+  border: 1px solid rgba(245, 197, 66, 0.4);
+}
+.network-alert.bad {
+  background: rgba(255, 107, 129, 0.1);
+  border: 1px solid rgba(255, 107, 129, 0.45);
+}

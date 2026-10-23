@@ -622,10 +622,14 @@ if (!app.requestSingleInstanceLock()) {
                 return fail("busy", "Já existe um diagnóstico ativo.");
               networkController = new AbortController();
               const sender = event.sender;
-              networkWork = runNetworkCheck(networkController.signal, (step) => {
-                if (!sender.isDestroyed())
-                  sender.send("routepilot:network-progress", step);
-              });
+              networkWork = runNetworkCheck(
+                networkController.signal,
+                (step) => {
+                  if (!sender.isDestroyed())
+                    sender.send("routepilot:network-progress", step);
+                },
+                { withLoad: call.args.withLoad },
+              );
               try {
                 return ok(await networkWork);
               } catch (e) {

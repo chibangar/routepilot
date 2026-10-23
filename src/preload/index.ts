@@ -20,7 +20,7 @@ const api: RoutePilotAPI = {
   cancelTrace: () => invoke("cancelTrace"),
   compareRoutes: (target) => invoke("compareRoutes", target),
   cancelCompare: () => invoke("cancelCompare"),
-  runNetworkCheck: () => invoke("runNetworkCheck"),
+  runNetworkCheck: (withLoad = true) => invoke("runNetworkCheck", { withLoad }),
   scanCs2: () => invoke("scanCs2"),
   scanLol: () => invoke("scanLol"),
   monitorTargets: () => invoke("monitorTargets"),

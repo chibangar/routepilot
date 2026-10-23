@@ -6,6 +6,7 @@ import { runElevated, runPsJson } from "./powershell";
 const IPV4 = /^\d{1,3}(\.\d{1,3}){3}$/;
 const PREFERRED_METRIC = 5;
 const OTHER_METRIC = 50;
+const NO_INTERNET_EXIT = 7;
 
 // Ligações com gateway IPv4 ativas (cabo, Wi-Fi, 4G/USB…).
 const LIST_SCRIPT = `Get-NetIPConfiguration -ErrorAction SilentlyContinue | Where-Object { $_.IPv4DefaultGateway -and $_.NetAdapter.Status -eq 'Up' } | ForEach-Object {
@@ -53,10 +54,19 @@ export async function readLinks(signal: AbortSignal): Promise<NetLink[]> {
 export function preferScript(index: number, others: number[]): string {
   if (!Number.isInteger(index) || others.some((o) => !Number.isInteger(o)))
     throw new Error("Ligação inválida.");
+  const all = [index, ...others];
   return [
     "$ErrorActionPreference = 'Stop'",
     `Set-NetIPInterface -InterfaceIndex ${index} -AddressFamily IPv4 -InterfaceMetric ${PREFERRED_METRIC}`,
     ...others.map((o) => `Set-NetIPInterface -InterfaceIndex ${o} -AddressFamily IPv4 -InterfaceMetric ${OTHER_METRIC}`),
+    // Se a ligação escolhida não tiver internet, volta já ao automático.
+    "Start-Sleep -Seconds 2",
+    "$ok = $false",
+    "foreach ($i in 1..5) { if (Test-Connection -ComputerName 1.1.1.1 -Count 1 -Quiet) { $ok = $true; break }; Start-Sleep -Seconds 1 }",
+    "if (-not $ok) {",
+    ...all.map((o) => `  Set-NetIPInterface -InterfaceIndex ${o} -AddressFamily IPv4 -AutomaticMetric Enabled`),
+    `  exit ${NO_INTERNET_EXIT}`,
+    "}",
   ].join("\r\n");
 }
 
@@ -72,10 +82,21 @@ export function automaticScript(indexes: number[]): string {
 export async function preferLink(index: number, signal: AbortSignal) {
   const links = await readLinks(signal);
   if (!links.some((l) => l.index === index)) throw new Error("Essa ligação já não está ativa.");
-  await runElevated(
-    preferScript(index, links.filter((l) => l.index !== index).map((l) => l.index)),
-    signal,
-  );
+  const chosen = links.find((l) => l.index === index)!;
+  if (chosen.pingMs === null)
+    throw new Error(`"${chosen.alias}" não respondeu à internet. Nada foi alterado.`);
+  try {
+    await runElevated(
+      preferScript(index, links.filter((l) => l.index !== index).map((l) => l.index)),
+      signal,
+    );
+  } catch (e) {
+    if (e instanceof Error && e.message.includes(`código ${NO_INTERNET_EXIT}`))
+      throw new Error(
+        `"${chosen.alias}" ficou sem internet depois de ser escolhida, por isso o Windows voltou ao automático.`,
+      );
+    throw e;
+  }
   return readLinks(signal);
 }
 

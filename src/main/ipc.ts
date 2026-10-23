@@ -41,7 +41,10 @@ const callSchema = z.discriminatedUnion("operation", [
   z.strictObject({ operation: z.literal("cancelTrace"), args: empty }),
   z.strictObject({ operation: z.literal("compareRoutes"), args: targetSchema }),
   z.strictObject({ operation: z.literal("cancelCompare"), args: empty }),
-  z.strictObject({ operation: z.literal("runNetworkCheck"), args: empty }),
+  z.strictObject({
+    operation: z.literal("runNetworkCheck"),
+    args: z.strictObject({ withLoad: z.boolean() }),
+  }),
   z.strictObject({ operation: z.literal("scanCs2"), args: empty }),
   z.strictObject({ operation: z.literal("scanLol"), args: empty }),
   z.strictObject({ operation: z.literal("monitorTargets"), args: empty }),

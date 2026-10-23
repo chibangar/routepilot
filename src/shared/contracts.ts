@@ -124,6 +124,11 @@ export type NetworkCheck = {
   downloadIncreaseMs: number | null;
   uploadIncreaseMs: number | null;
   bufferbloatGrade: "A+" | "A" | "B" | "C" | "D" | "F" | null;
+  metered: boolean;
+  loadSkipped: string | null;
+  dropped: "download" | "upload" | null;
+  recovered: boolean | null;
+  dataUsedMb: number;
   advice: string[];
 };
 export type Cs2Datacenter = {
@@ -262,7 +267,7 @@ export interface RoutePilotAPI {
   cancelTrace(): Promise<Result<void>>;
   compareRoutes(target: Target): Promise<Result<RouteComparison>>;
   cancelCompare(): Promise<Result<void>>;
-  runNetworkCheck(): Promise<Result<NetworkCheck>>;
+  runNetworkCheck(withLoad?: boolean): Promise<Result<NetworkCheck>>;
   scanCs2(): Promise<Result<Cs2Scan>>;
   scanLol(): Promise<Result<LolScan>>;
   monitorTargets(): Promise<Result<MonitorTarget[]>>;
