@@ -30,7 +30,7 @@ async function open() {
   page.on("pageerror", (error) => errors.push(error.message));
   await page.waitForLoadState("domcontentloaded");
   await expect(
-    page.getByRole("heading", { name: "A tua ligação, em perspetiva." }),
+    page.getByRole("heading", { name: "Baixa o teu ping" }),
   ).toBeVisible();
   return page;
 }

@@ -7,6 +7,7 @@ const madrid = { id: "cs2-mad", group: "CS2", label: "Madrid (Spain)", host: "15
 const frankfurt = { id: "cs2-fra", group: "CS2", label: "Frankfurt (Germany)", host: "155.133.226.71" };
 const base = (over: Partial<Measured>): Measured => ({
   location: "continente",
+  connection: "cabo",
   target: madrid,
   points: [],
   totalMs: 15,
@@ -58,8 +59,21 @@ test("blames the home network when the router itself is slow", () => {
   );
   expect(r.verdict).toBe("casa");
   expect(r.segments[0]).toEqual({ part: "casa", label: "Casa (PC → router)", ms: 25 });
-  expect(r.advice.some((a) => /cabo de rede/.test(a))).toBe(true);
+  expect(r.advice.some((a) => /Mesmo por cabo/.test(a))).toBe(true);
   expect(r.advice.some((a) => /O ping varia/.test(a))).toBe(true);
+});
+
+test("gives Wi-Fi advice on Wi-Fi and tolerates a few ms more at home", () => {
+  const slow = analyse(
+    base({ connection: "wifi", points: [{ ttl: 1, address: "192.168.1.1", ms: 25 }], totalMs: 40 }),
+  );
+  expect(slow.verdict).toBe("casa");
+  expect(slow.advice.some((a) => /5 GHz/.test(a))).toBe(true);
+  const normal = analyse(
+    base({ connection: "wifi", points: [{ ttl: 1, address: "192.168.1.1", ms: 6 }], totalMs: 18 }),
+  );
+  expect(normal.verdict).toBe("bom");
+  expect(normal.advice.at(-1)).toMatch(/em Wi-Fi, usa 5 GHz/);
 });
 
 test("flags a detour and suggests the nearer CS2 datacenter", () => {
@@ -105,15 +119,15 @@ test("distance estimates grow from mainland to islands and Madrid is nearest", (
 });
 
 test("IPC accepts only game server targets for the breakdown", () => {
-  expect(validateCall({ operation: "pingBreakdown", args: { target: madrid, location: "acores" } }).ok).toBe(true);
+  expect(validateCall({ operation: "pingBreakdown", args: { target: madrid, location: "acores", connection: "wifi" } }).ok).toBe(true);
   expect(
     validateCall({
       operation: "pingBreakdown",
-      args: { target: { ...madrid, id: "router" }, location: "acores" },
+      args: { target: { ...madrid, id: "router" }, location: "acores", connection: "cabo" },
     }).ok,
   ).toBe(false);
   expect(
-    validateCall({ operation: "pingBreakdown", args: { target: madrid, location: "lua" } }).ok,
+    validateCall({ operation: "pingBreakdown", args: { target: madrid, location: "lua", connection: "cabo" } }).ok,
   ).toBe(false);
 });
 

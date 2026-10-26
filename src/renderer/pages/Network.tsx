@@ -5,7 +5,6 @@ import { useApp } from "../context";
 import { PageHeading, SectionTitle, number } from "../components/UI";
 import { NetworkMonitor } from "../components/NetworkMonitor";
 import { NetLinks } from "../components/NetLinks";
-import { PingBreakdownPanel } from "../components/PingBreakdown";
 
 const ms = (v: number | null) => (v === null ? "—" : `${number(v, 0)} ms`);
 const loss = (p: NetworkPhase) =>
@@ -43,11 +42,8 @@ export function NetworkPage() {
       <PageHeading
         eyebrow="ANTES DE JOGAR"
         title="A minha rede"
-        subtitle="Descobre porque tens ping alto e o que fazer."
+        subtitle="Para veres de onde vem o teu ping, usa o Início. Aqui estão as ferramentas extra."
       />
-      <PingBreakdownPanel busy={busy || running} />
-
-      <SectionTitle>Outras ferramentas</SectionTitle>
       <div className="segmented tool-tabs" role="tablist" aria-label="Outras ferramentas">
         {(
           [

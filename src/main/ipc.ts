@@ -104,9 +104,11 @@ const callSchema = z.discriminatedUnion("operation", [
         host: z.string().refine((v) => validateHost(v).ok),
       }),
       location: z.enum(["continente", "madeira", "acores"]),
+      connection: z.enum(["cabo", "wifi"]),
     }),
   }),
   z.strictObject({ operation: z.literal("cancelBreakdown"), args: empty }),
+  z.strictObject({ operation: z.literal("connectionInfo"), args: empty }),
   z.strictObject({ operation: z.literal("readHardware"), args: empty }),
   z.strictObject({
     operation: z.literal("exportSessions"),

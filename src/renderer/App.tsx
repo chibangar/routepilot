@@ -283,6 +283,7 @@ export function App() {
                 </button>
               </div>
             )}
+            <div className="page-enter" key={page === "details" ? `details-${gameId}` : page}>
             {page === "home" ? (
               <Home />
             ) : page === "connections" ? (
@@ -300,6 +301,7 @@ export function App() {
             ) : (
               <Help />
             )}
+            </div>
             <footer className="page-footer">
               <span>
                 <ShieldCheck size={13} />

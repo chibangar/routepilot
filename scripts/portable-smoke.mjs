@@ -57,7 +57,7 @@ try {
     )
     .toBe(true);
   await expect(
-    page.getByRole("heading", { name: "A tua ligação, em perspetiva." }),
+    page.getByRole("heading", { name: "Baixa o teu ping" }),
   ).toBeVisible();
   expect(
     (

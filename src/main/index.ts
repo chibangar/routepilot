@@ -21,7 +21,7 @@ import { loadStore, saveStore, defaultStore } from "./store";
 import { SessionManager } from "./diagnostics/session-manager";
 import { traceHost } from "./diagnostics/trace";
 import { compareRoutes } from "./diagnostics/relay";
-import { runNetworkCheck } from "./diagnostics/network-check";
+import { readAdapter, runNetworkCheck } from "./diagnostics/network-check";
 import { scanCs2 } from "./diagnostics/cs2";
 import { scanLol } from "./diagnostics/lol";
 import { runBreakdown } from "./diagnostics/breakdown";
@@ -756,6 +756,7 @@ if (!app.requestSingleInstanceLock()) {
               breakdownWork = runBreakdown(
                 call.args.target,
                 call.args.location,
+                call.args.connection,
                 breakdownController.signal,
                 (step) => {
                   if (!sender.isDestroyed())
@@ -770,6 +771,14 @@ if (!app.requestSingleInstanceLock()) {
                 breakdownController = null;
                 breakdownWork = null;
               }
+            }
+            case "connectionInfo": {
+              const { adapter, wifiSignal } = await readAdapter(new AbortController().signal);
+              return ok({
+                kind: adapter.wifi === null ? null : adapter.wifi ? "wifi" : "cabo",
+                wifiSignal,
+                adapterName: adapter.name,
+              });
             }
             case "cancelBreakdown":
               breakdownController?.abort();

@@ -3,6 +3,7 @@ import { Gauge, Gamepad2, Rocket, Upload, X, Zap } from "lucide-react";
 import type { PerfStatus, QosRule } from "../../shared/contracts";
 import { useApp } from "../context";
 import { PageHeading, SectionTitle, number } from "../components/UI";
+import { HardwareGauges } from "../components/HardwareGauges";
 
 const HIGH_PERFORMANCE = "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c";
 const BALANCED = "381b4222-f694-41f0-9685-ff5bb260df2e";
@@ -74,6 +75,9 @@ export function PerformancePage() {
         title="Desempenho"
         subtitle="Ajustes reais do Windows para jogar, cada um com botão para desfazer."
       />
+
+      <SectionTitle>Hardware</SectionTitle>
+      <HardwareGauges />
 
       <SectionTitle>Windows</SectionTitle>
       <section className="panel settings-panel">

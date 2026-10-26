@@ -156,9 +156,16 @@ export type BreakdownHop = {
   ms: number;
   part: BreakdownPart | "servidor";
 };
+export type ConnectionKind = "cabo" | "wifi";
+export type ConnectionInfo = {
+  kind: ConnectionKind | null;
+  wifiSignal: number | null;
+  adapterName: string | null;
+};
 export type PingBreakdown = {
   measuredAt: string;
   location: "continente" | "madeira" | "acores";
+  connection: ConnectionKind;
   target: { id: string; label: string; host: string };
   serverName: string | null;
   totalMs: number;
@@ -315,9 +322,11 @@ export interface RoutePilotAPI {
   cs2Uninstall(): Promise<Result<Cs2Status>>;
   cancelNetworkCheck(): Promise<Result<void>>;
   onNetworkProgress?(listener: (step: string) => void): () => void;
+  connectionInfo(): Promise<Result<ConnectionInfo>>;
   pingBreakdown(
     target: MonitorTarget,
     location: PingBreakdown["location"],
+    connection: ConnectionKind,
   ): Promise<Result<PingBreakdown>>;
   cancelBreakdown(): Promise<Result<void>>;
   onBreakdownProgress?(listener: (step: string) => void): () => void;

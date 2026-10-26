@@ -4393,36 +4393,6 @@ td {
 }
 
 /* Onde está o meu ping? */
-.breakdown-hero {
-  padding: 26px 28px;
-  border-color: rgba(73, 223, 177, 0.3);
-}
-.breakdown-hero h3 {
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-}
-.breakdown-hero h3 svg {
-  color: var(--mint);
-}
-.breakdown-intro {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 14px;
-}
-.breakdown-controls {
-  display: flex;
-  gap: 10px;
-  align-items: stretch;
-  flex-wrap: wrap;
-  margin-top: 18px;
-}
-.breakdown-controls .segmented button {
-  padding: 9px 16px;
-  font-size: 14px;
-}
 .breakdown-select {
   background: #191f27;
   border: 1px solid #333c49;
@@ -4558,4 +4528,280 @@ td {
   cursor: pointer;
   font-size: 13px;
   color: var(--muted);
+}
+
+/* Início: "Baixa o teu ping" */
+.ping-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, #13201d 0%, var(--panel) 55%);
+  border: 1px solid rgba(73, 223, 177, 0.28);
+  border-radius: 16px;
+  padding: 28px 30px;
+  margin-bottom: 28px;
+  animation: rp-fade-up 0.5s ease-out both;
+}
+.ping-hero-glow {
+  position: absolute;
+  inset: -40% -10% auto auto;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(73, 223, 177, 0.18), transparent 65%);
+  pointer-events: none;
+  animation: rp-glow 6s ease-in-out infinite alternate;
+}
+.ping-hero-head h1 {
+  font-size: 30px;
+  margin: 0;
+}
+.ping-hero-head h3 {
+  font-size: 20px;
+  margin: 0;
+}
+.ping-hero-head p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.ping-steps {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 18px 22px;
+  margin-top: 22px;
+}
+.ping-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ping-step label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.ping-step label b {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(73, 223, 177, 0.15);
+  color: var(--mint);
+  font-size: 11px;
+}
+.ping-step .segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 15px;
+  font-size: 14px;
+  transition: background 0.2s, color 0.2s;
+}
+.ping-step .breakdown-select {
+  height: 41px;
+  flex: none;
+  width: 260px;
+}
+.ping-detected {
+  position: absolute;
+  top: 100%;
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.ping-go {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--mint);
+  color: #06261c;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s;
+  animation: rp-pulse 2.2s ease-out infinite;
+}
+.ping-go:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.03);
+}
+.ping-go:disabled {
+  opacity: 0.45;
+  cursor: default;
+  animation: none;
+}
+.ping-go.stop {
+  background: #2a1a20;
+  color: #ff8fa3;
+  animation: none;
+}
+
+/* Animação do pacote enquanto mede */
+.route-anim {
+  margin-top: 30px;
+  animation: rp-fade-up 0.35s ease-out both;
+}
+.route-anim-track {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+.route-anim-line {
+  position: absolute;
+  left: 50px;
+  right: 50px;
+  top: 22px;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, #2c3540 0 8px, transparent 8px 14px);
+}
+.route-anim-packet {
+  position: absolute;
+  top: 17px;
+  left: 50px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 14px 4px rgba(73, 223, 177, 0.6);
+  animation: rp-packet 2.4s ease-in-out infinite;
+}
+.route-anim-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 80px;
+  text-align: center;
+}
+.route-anim-node span {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #191f27;
+  border: 1px solid #333c49;
+  color: var(--muted);
+  transition: all 0.4s;
+}
+.route-anim-node.lit span {
+  border-color: var(--mint);
+  color: var(--mint);
+  box-shadow: 0 0 18px rgba(73, 223, 177, 0.35);
+}
+.route-anim-node small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.route-anim > p {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 14px 0 0;
+}
+
+/* Entrada do resultado */
+.ping-hero .breakdown-result {
+  margin-top: 26px;
+  animation: rp-fade-up 0.45s ease-out both;
+}
+.breakdown-bar > div {
+  transform-origin: left;
+  animation: rp-grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ping-hero .network-advice li {
+  animation: rp-fade-up 0.4s ease-out both;
+}
+.home-page .dashboard-section {
+  animation: rp-fade-up 0.5s 0.1s ease-out both;
+}
+.page-enter {
+  animation: rp-fade-up 0.3s ease-out both;
+}
+
+@keyframes rp-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes rp-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes rp-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(73, 223, 177, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(73, 223, 177, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(73, 223, 177, 0);
+  }
+}
+@keyframes rp-glow {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(-60px, 30px) scale(1.15);
+  }
+}
+@keyframes rp-packet {
+  0% {
+    left: 50px;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: calc(100% - 62px);
+    opacity: 0;
+  }
+}
+.economy-mode .ping-hero,
+.economy-mode .ping-hero *,
+.economy-mode .home-page .dashboard-section,
+.economy-mode .page-enter {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .route-anim-packet {
+    display: none;
+  }
+}
+@media (max-width: 1050px) {
+  .ping-step .breakdown-select {
+    width: 220px;
+  }
+  .route-anim-node {
+    width: 64px;
+  }
 }

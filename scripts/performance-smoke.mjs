@@ -91,7 +91,7 @@ for (const kind of ["fresh-profile", "restart-same-profile"]) {
   try {
     const page = await app.firstWindow();
     await expect(
-      page.getByRole("heading", { name: "A tua ligação, em perspetiva." }),
+      page.getByRole("heading", { name: "Baixa o teu ping" }),
     ).toBeVisible();
     const startupMs = performance.now() - start;
     await page.bringToFront();

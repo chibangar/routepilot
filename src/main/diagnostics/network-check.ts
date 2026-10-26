@@ -233,12 +233,8 @@ export function advice(c: Omit<NetworkCheck, "advice">): string[] {
   return tips;
 }
 
-export async function runNetworkCheck(
-  signal: AbortSignal,
-  onProgress: (step: string) => void,
-  options: { withLoad?: boolean } = {},
-): Promise<NetworkCheck> {
-  onProgress("A identificar a ligação…");
+// Adaptador da rota por defeito e, em Wi-Fi, a força do sinal.
+export async function readAdapter(signal: AbortSignal) {
   const ps = await runProcess(
     systemCommand("WindowsPowerShell/v1.0/powershell.exe"),
     ["-NoProfile", "-NonInteractive", "-Command", ADAPTER_SCRIPT],
@@ -259,6 +255,16 @@ export async function runNetworkCheck(
     );
     wifiSignal = parseWifiSignal(w.stdout);
   }
+  return { adapter, wifiSignal };
+}
+
+export async function runNetworkCheck(
+  signal: AbortSignal,
+  onProgress: (step: string) => void,
+  options: { withLoad?: boolean } = {},
+): Promise<NetworkCheck> {
+  onProgress("A identificar a ligação…");
+  const { adapter, wifiSignal } = await readAdapter(signal);
 
   onProgress("A medir o router…");
   const gateway = adapter.gateway

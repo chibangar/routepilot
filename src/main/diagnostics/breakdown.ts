@@ -1,5 +1,6 @@
 import type {
   BreakdownHop,
+  ConnectionKind,
   BreakdownSegment,
   MonitorTarget,
   PingBreakdown,
@@ -23,6 +24,7 @@ const CONCURRENCY = 5;
 export type HopPoint = { ttl: number; address: string; ms: number };
 export type Measured = {
   location: PingLocation;
+  connection: ConnectionKind;
   target: MonitorTarget;
   points: HopPoint[];
   totalMs: number;
@@ -117,7 +119,9 @@ export function analyse(m: Measured): PingBreakdown {
 
   const expected = server ? expectedMs(m.location, server) : null;
   const excess = expected === null ? null : r1(total - expected);
-  const homeBad = homeMs !== null && homeMs > 5;
+  // Em Wi-Fi bom o router responde em 2–6 ms; por cabo em 1–2 ms.
+  const wifi = m.connection === "wifi";
+  const homeBad = homeMs !== null && homeMs > (wifi ? 8 : 5);
   // O que sobra depois de descontar o atraso a mais de casa é culpa da rota.
   const routeExcess = excess === null ? null : excess - Math.max(0, home - 2);
   const routeBad =
@@ -158,7 +162,9 @@ export function analyse(m: Measured): PingBreakdown {
     advice.push("O router não respondeu ao traceroute, por isso não foi possível separar a parte de casa.");
   else if (homeBad)
     advice.push(
-      `Em casa perdes ${ms(homeMs)} (o normal é 1–2 ms). Usa cabo de rede em vez de Wi-Fi e faz o Teste completo abaixo para ver se há bufferbloat.`,
+      wifi
+        ? `Em casa perdes ${ms(homeMs)} (Wi-Fi bom fica em 2–6 ms). Liga-te à rede de 5 GHz, aproxima o PC do router e evita paredes pelo meio. Se puderes, um cabo de rede resolve de vez.`
+        : `Mesmo por cabo, o router demora ${ms(homeMs)} (o normal é 1–2 ms). Reinicia o router, vê se alguém está a fazer downloads e faz o Teste da rede de casa na página Rede.`,
     );
   if (cableAt !== null) {
     const isp = at(cableAt - 1) - home;
@@ -189,18 +195,26 @@ export function analyse(m: Measured): PingBreakdown {
   }
   if (m.medianMs - total > 10)
     advice.push(
-      `O ping varia: mínimo ${ms(total)}, típico ${ms(m.medianMs)}. Picos assim vêm normalmente do Wi-Fi ou do bufferbloat; usa o Teste completo abaixo.`,
+      `O ping varia: mínimo ${ms(total)}, típico ${ms(m.medianMs)}. ` +
+        (wifi
+          ? "Em Wi-Fi isto é normalmente interferência: usa 5 GHz e fica perto do router."
+          : "Por cabo isto vem normalmente de alguém a usar a internet (bufferbloat); faz o Teste da rede de casa na página Rede."),
     );
   if (m.lossPct > 0)
     advice.push(
       `${m.lossPct}% das sondas ao servidor ficaram sem resposta. Pode ser só o servidor a ignorar pings; confirma com o Monitor ao vivo.`,
     );
   if (!wrongPlace && (verdict === "bom" || (verdict === "distancia" && !homeBad && !routeBad)))
-    advice.push("Não há muito mais a ganhar: joga sempre no servidor mais perto e com cabo de rede.");
+    advice.push(
+      wifi
+        ? "Não há muito mais a ganhar: joga no servidor mais perto e, em Wi-Fi, usa 5 GHz perto do router."
+        : "Não há muito mais a ganhar: joga sempre no servidor mais perto.",
+    );
 
   return {
     measuredAt: new Date().toISOString(),
     location: m.location,
+    connection: m.connection,
     target: { id: m.target.id, label: m.target.label, host: m.target.host },
     serverName,
     totalMs: r1(total),
@@ -230,6 +244,7 @@ async function pings(host: string, n: number, signal: AbortSignal) {
 export async function runBreakdown(
   target: MonitorTarget,
   location: PingLocation,
+  connection: ConnectionKind,
   signal: AbortSignal,
   onProgress: (step: string) => void,
 ): Promise<PingBreakdown> {
@@ -268,6 +283,7 @@ export async function runBreakdown(
     throw new Error("O servidor não respondeu ao ping. Experimenta outro servidor da lista.");
   return analyse({
     location,
+    connection,
     target,
     points,
     totalMs: okSamples[0],
