@@ -140,7 +140,7 @@ export function PingBreakdownPanel({ busy, hero = false }: { busy: boolean; hero
   // A localização exata fica só em memória, não é guardada no disco.
   const [fix, setFix] = useState<GeoFix | null>(null);
   const [locating, setLocating] = useState(false);
-  const [locateError, setLocateError] = useState<{ message: string; off: boolean } | null>(null);
+  const [locateError, setLocateError] = useState<{ message: string; code: string } | null>(null);
   const [running, setRunning] = useState(false);
   const [step, setStep] = useState("");
   const [result, setResult] = useState<PingBreakdown | null>(null);
@@ -193,7 +193,7 @@ export function PingBreakdownPanel({ busy, hero = false }: { busy: boolean; hero
     try {
       const r = await window.routepilot.locate(method);
       if (!r.ok) {
-        setLocateError({ message: r.error.message, off: r.error.code === "location_off" });
+        setLocateError({ message: r.error.message, code: r.error.code });
         return;
       }
       setFix(r.value);
@@ -339,14 +339,36 @@ export function PingBreakdownPanel({ busy, hero = false }: { busy: boolean; hero
 
       {locateError && (
         <div className="locate-help" role="alert">
-          <span>
-            <strong>{locateError.message}</strong>{" "}
-            {locateError.off
-              ? "Liga-a nas definições para teres a localização exata, ou usa uma aproximada pela internet (envia o teu endereço IP ao serviço ipwho.is)."
-              : "Escolhe a região à mão."}
-          </span>
-          <div>
-            {locateError.off && (
+          <div className="locate-help-text">
+            <strong>{locateError.message}</strong>
+            {locateError.code === "location_denied" ? (
+              <>
+                <span>
+                  Em Definições → Privacidade e segurança → Localização, liga os três
+                  interruptores e depois carrega em Tentar de novo:
+                </span>
+                <ol>
+                  <li>Serviços de localização</li>
+                  <li>Permitir que as aplicações tenham acesso à sua localização</li>
+                  <li>Permitir que as aplicações de computador acedam à sua localização</li>
+                </ol>
+              </>
+            ) : locateError.code === "location_unavailable" ? (
+              <span>
+                Num PC sem Wi-Fi nem GPS isto é normal. Usa a localização aproximada ou
+                escolhe a região à mão.
+              </span>
+            ) : (
+              <span>Escolhe a região à mão.</span>
+            )}
+            {locateError.code !== "location_failed" && (
+              <small>
+                A aproximada usa a internet: envia o teu endereço IP ao serviço ipwho.is.
+              </small>
+            )}
+          </div>
+          <div className="locate-help-actions">
+            {locateError.code === "location_denied" && (
               <>
                 <button
                   className="button compact"
@@ -354,10 +376,15 @@ export function PingBreakdownPanel({ busy, hero = false }: { busy: boolean; hero
                 >
                   Abrir definições
                 </button>
-                <button className="button compact" onClick={() => void locateMe("internet")}>
-                  Usar aproximada
+                <button className="button compact" onClick={() => void locateMe("windows")}>
+                  Tentar de novo
                 </button>
               </>
+            )}
+            {locateError.code !== "location_failed" && (
+              <button className="button compact" onClick={() => void locateMe("internet")}>
+                Usar aproximada
+              </button>
             )}
             <button className="icon-btn" aria-label="Fechar" onClick={() => setLocateError(null)}>
               <X size={15} />

@@ -22,7 +22,7 @@ const INTERNET_URL =
 export class LocationError extends Error {
   constructor(
     message: string,
-    readonly code: "location_off" | "location_failed",
+    readonly code: "location_denied" | "location_unavailable" | "location_failed",
   ) {
     super(message);
   }
@@ -51,11 +51,13 @@ export async function locate(method: GeoFix["source"], signal: AbortSignal): Pro
         source: "windows",
         place: null,
       };
+    // "Denied" acontece também com os serviços ligados, quando as apps de
+    // computador não têm acesso à localização.
+    if (r?.permission === "Denied" || r?.status === "Disabled")
+      throw new LocationError("O Windows não deu acesso à localização.", "location_denied");
     throw new LocationError(
-      r?.permission === "Denied" || r?.status === "Disabled"
-        ? "A localização do Windows está desligada."
-        : "O Windows não conseguiu encontrar a tua localização.",
-      "location_off",
+      "O Windows tem acesso à localização mas não encontrou a tua posição.",
+      "location_unavailable",
     );
   }
   const res = await fetch(INTERNET_URL, { signal });

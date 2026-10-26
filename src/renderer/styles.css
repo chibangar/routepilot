@@ -4857,11 +4857,24 @@ td {
   font-size: 13px;
   animation: rp-fade-up 0.3s ease-out both;
 }
-.locate-help > span {
+.locate-help-text {
   flex: 1;
+  text-align: left;
+  align-items: flex-start;
   min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-.locate-help > div {
+.locate-help-text ol {
+  margin: 2px 0 0;
+  padding-left: 20px;
+}
+.locate-help-text small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.locate-help-actions {
   display: flex;
   gap: 8px;
   align-items: center;
