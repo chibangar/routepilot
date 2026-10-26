@@ -148,6 +148,32 @@ export type LolRegionPing = {
 };
 export type LolScan = { measuredAt: string; regions: LolRegionPing[] };
 export type MonitorTarget = { id: string; group: string; label: string; host: string };
+export type BreakdownPart = "casa" | "operadora" | "cabo" | "continente" | "caminho";
+export type BreakdownSegment = { part: BreakdownPart; label: string; ms: number };
+export type BreakdownHop = {
+  ttl: number;
+  address: string;
+  ms: number;
+  part: BreakdownPart | "servidor";
+};
+export type PingBreakdown = {
+  measuredAt: string;
+  location: "continente" | "madeira" | "acores";
+  target: { id: string; label: string; host: string };
+  serverName: string | null;
+  totalMs: number;
+  medianMs: number;
+  lossPct: number;
+  segments: BreakdownSegment[];
+  hops: BreakdownHop[];
+  expectedMs: number | null;
+  cableExpectedMs: number | null;
+  excessMs: number | null;
+  verdict: "casa" | "rota" | "distancia" | "bom";
+  headline: string;
+  advice: string[];
+  traceComplete: boolean;
+};
 export type MonitorState = {
   target: MonitorTarget;
   running: boolean;
@@ -289,6 +315,12 @@ export interface RoutePilotAPI {
   cs2Uninstall(): Promise<Result<Cs2Status>>;
   cancelNetworkCheck(): Promise<Result<void>>;
   onNetworkProgress?(listener: (step: string) => void): () => void;
+  pingBreakdown(
+    target: MonitorTarget,
+    location: PingBreakdown["location"],
+  ): Promise<Result<PingBreakdown>>;
+  cancelBreakdown(): Promise<Result<void>>;
+  onBreakdownProgress?(listener: (step: string) => void): () => void;
   readHardware(): Promise<Result<Hardware>>;
   exportSessions(format: "json" | "csv"): Promise<Result<string | null>>;
   checkForUpdates(): Promise<Result<{ updateAvailable: boolean; version?: string }>>;

@@ -55,6 +55,16 @@ const api: RoutePilotAPI = {
     return () =>
       ipcRenderer.removeListener("routepilot:network-progress", handler);
   },
+  pingBreakdown: (target, location) =>
+    invoke("pingBreakdown", { target, location }),
+  cancelBreakdown: () => invoke("cancelBreakdown"),
+  onBreakdownProgress: (listener) => {
+    const handler = (_event: Electron.IpcRendererEvent, step: string) =>
+      listener(step);
+    ipcRenderer.on("routepilot:breakdown-progress", handler);
+    return () =>
+      ipcRenderer.removeListener("routepilot:breakdown-progress", handler);
+  },
   readHardware: () => invoke("readHardware"),
   exportSessions: (format) => invoke("exportSessions", { format }),
   checkForUpdates: () => invoke("checkForUpdates"),

@@ -11,6 +11,7 @@ import {
   type Trace,
   type RouteComparison,
   type NetworkCheck,
+  type PingBreakdown,
   type Cs2Scan,
   type DiscoveryReport,
   type DiscoveredGame,
@@ -23,6 +24,7 @@ import { compareRoutes } from "./diagnostics/relay";
 import { runNetworkCheck } from "./diagnostics/network-check";
 import { scanCs2 } from "./diagnostics/cs2";
 import { scanLol } from "./diagnostics/lol";
+import { runBreakdown } from "./diagnostics/breakdown";
 import { LiveMonitor, monitorTargets } from "./system/monitor";
 import {
   boostGames,
@@ -73,6 +75,8 @@ let networkController: AbortController | null = null;
 let networkWork: Promise<NetworkCheck> | null = null;
 let cs2Controller: AbortController | null = null;
 let cs2Work: Promise<unknown> | null = null;
+let breakdownController: AbortController | null = null;
+let breakdownWork: Promise<PingBreakdown> | null = null;
 const monitor = new LiveMonitor((state) => {
   if (win && !win.isDestroyed() && !win.webContents.isDestroyed())
     win.webContents.send("routepilot:monitor", state);
@@ -157,6 +161,7 @@ async function shutdown() {
   compareController?.abort();
   networkController?.abort();
   cs2Controller?.abort();
+  breakdownController?.abort();
   monitor.stop();
   discoveryController?.abort();
   await Promise.all([
@@ -165,6 +170,7 @@ async function shutdown() {
     compareWork,
     networkWork?.catch(() => undefined),
     cs2Work?.catch(() => undefined),
+    breakdownWork?.catch(() => undefined),
     discoveryWork,
   ]);
   await mutations;
@@ -588,7 +594,7 @@ if (!app.requestSingleInstanceLock()) {
             case "cancelSession":
               return manager.cancel(call.args.id);
             case "startTrace": {
-              if (traceWork || compareWork || networkWork || cs2Work || manager.active)
+              if (traceWork || compareWork || networkWork || cs2Work || breakdownWork || manager.active)
                 return fail("busy", "Já existe um diagnóstico ativo.");
               traceController = new AbortController();
               traceWork = traceHost(call.args, traceController.signal);
@@ -600,7 +606,7 @@ if (!app.requestSingleInstanceLock()) {
               }
             }
             case "compareRoutes": {
-              if (traceWork || compareWork || networkWork || cs2Work || manager.active)
+              if (traceWork || compareWork || networkWork || cs2Work || breakdownWork || manager.active)
                 return fail("busy", "Já existe um diagnóstico ativo.");
               const relays = store.settings.relays ?? [];
               compareController = new AbortController();
@@ -618,7 +624,7 @@ if (!app.requestSingleInstanceLock()) {
               }
             }
             case "runNetworkCheck": {
-              if (traceWork || compareWork || networkWork || cs2Work || manager.active)
+              if (traceWork || compareWork || networkWork || cs2Work || breakdownWork || manager.active)
                 return fail("busy", "Já existe um diagnóstico ativo.");
               networkController = new AbortController();
               const sender = event.sender;
@@ -643,7 +649,7 @@ if (!app.requestSingleInstanceLock()) {
               }
             }
             case "scanCs2": {
-              if (traceWork || compareWork || networkWork || cs2Work || manager.active)
+              if (traceWork || compareWork || networkWork || cs2Work || breakdownWork || manager.active)
                 return fail("busy", "Já existe um diagnóstico ativo.");
               cs2Controller = new AbortController();
               cs2Work = scanCs2(store.settings.timeoutMs, cs2Controller.signal);
@@ -657,7 +663,7 @@ if (!app.requestSingleInstanceLock()) {
               }
             }
             case "scanLol": {
-              if (traceWork || compareWork || networkWork || cs2Work || manager.active)
+              if (traceWork || compareWork || networkWork || cs2Work || breakdownWork || manager.active)
                 return fail("busy", "Já existe um diagnóstico ativo.");
               cs2Controller = new AbortController();
               const work = scanLol(store.settings.timeoutMs, cs2Controller.signal);
@@ -742,6 +748,33 @@ if (!app.requestSingleInstanceLock()) {
                 return fail("cs2_firewall", e instanceof Error ? e.message : String(e));
               }
             }
+            case "pingBreakdown": {
+              if (traceWork || compareWork || networkWork || cs2Work || breakdownWork || manager.active)
+                return fail("busy", "Já existe um diagnóstico ativo.");
+              breakdownController = new AbortController();
+              const sender = event.sender;
+              breakdownWork = runBreakdown(
+                call.args.target,
+                call.args.location,
+                breakdownController.signal,
+                (step) => {
+                  if (!sender.isDestroyed())
+                    sender.send("routepilot:breakdown-progress", step);
+                },
+              );
+              try {
+                return ok(await breakdownWork);
+              } catch (e) {
+                return fail("ping_breakdown", e instanceof Error ? e.message : String(e));
+              } finally {
+                breakdownController = null;
+                breakdownWork = null;
+              }
+            }
+            case "cancelBreakdown":
+              breakdownController?.abort();
+              await breakdownWork?.catch(() => undefined);
+              return ok(undefined);
             case "cancelNetworkCheck":
               networkController?.abort();
               await networkWork?.catch(() => undefined);

@@ -94,6 +94,19 @@ const callSchema = z.discriminatedUnion("operation", [
   }),
   z.strictObject({ operation: z.literal("cs2Uninstall"), args: empty }),
   z.strictObject({ operation: z.literal("cancelNetworkCheck"), args: empty }),
+  z.strictObject({
+    operation: z.literal("pingBreakdown"),
+    args: z.strictObject({
+      target: z.strictObject({
+        id: z.string().regex(/^(cs2-[a-z0-9]{2,8}|lol-[A-Z]{2,5})$/),
+        group: z.string().max(40),
+        label: z.string().min(1).max(120),
+        host: z.string().refine((v) => validateHost(v).ok),
+      }),
+      location: z.enum(["continente", "madeira", "acores"]),
+    }),
+  }),
+  z.strictObject({ operation: z.literal("cancelBreakdown"), args: empty }),
   z.strictObject({ operation: z.literal("readHardware"), args: empty }),
   z.strictObject({
     operation: z.literal("exportSessions"),

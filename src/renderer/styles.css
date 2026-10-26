@@ -4391,3 +4391,123 @@ td {
   background: rgba(255, 107, 129, 0.1);
   border: 1px solid rgba(255, 107, 129, 0.45);
 }
+
+/* Onde está o meu ping? */
+.breakdown-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.segmented {
+  display: inline-flex;
+  border: 1px solid #333c49;
+  border-radius: 7px;
+  overflow: hidden;
+}
+.segmented button {
+  background: #191f27;
+  color: #c9d1db;
+  border: 0;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.segmented button + button {
+  border-left: 1px solid #333c49;
+}
+.segmented button.active {
+  background: rgba(73, 223, 177, 0.15);
+  color: var(--mint);
+  font-weight: 600;
+}
+.breakdown-result {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.breakdown-headline {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.breakdown-headline.verdict-casa,
+.breakdown-headline.verdict-rota {
+  color: #f5c542;
+}
+.breakdown-headline.verdict-bom,
+.breakdown-headline.verdict-distancia {
+  color: var(--mint);
+}
+.breakdown-totals {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--muted);
+}
+.breakdown-totals strong {
+  color: #fff;
+}
+.breakdown-bar {
+  display: flex;
+  height: 18px;
+  border-radius: 6px;
+  overflow: hidden;
+  gap: 2px;
+}
+.breakdown-bar > div {
+  flex-basis: 0;
+  min-width: 4px;
+}
+.part-casa {
+  background: #f5c542;
+}
+.part-operadora {
+  background: #7aa2ff;
+}
+.part-cabo {
+  background: #49dfb1;
+}
+.part-continente {
+  background: #b18cff;
+}
+.part-caminho {
+  background: #7aa2ff;
+}
+.breakdown-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+}
+.breakdown-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+.breakdown-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.breakdown-legend span {
+  flex: 1;
+  color: var(--muted);
+}
+.breakdown-hops summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+}

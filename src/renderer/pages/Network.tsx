@@ -5,6 +5,7 @@ import { useApp } from "../context";
 import { PageHeading, SectionTitle, number } from "../components/UI";
 import { NetworkMonitor } from "../components/NetworkMonitor";
 import { NetLinks } from "../components/NetLinks";
+import { PingBreakdownPanel } from "../components/PingBreakdown";
 
 const ms = (v: number | null) => (v === null ? "—" : `${number(v, 0)} ms`);
 const loss = (p: NetworkPhase) =>
@@ -41,8 +42,10 @@ export function NetworkPage() {
       <PageHeading
         eyebrow="ANTES DE JOGAR"
         title="Verificar a minha rede"
-        subtitle="Encontra o que está a aumentar o teu ping dentro de casa: Wi-Fi, router e bufferbloat."
+        subtitle="Descobre de onde vem o teu ping: casa, operadora, cabo até ao continente ou servidor."
       />
+      <PingBreakdownPanel busy={busy || running} />
+      <SectionTitle>Rede de casa</SectionTitle>
       <section className="panel network-panel">
         <div className="route-compare-head">
           <div>

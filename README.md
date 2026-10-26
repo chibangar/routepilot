@@ -4,7 +4,7 @@ Aplicação desktop para Windows, em português, para organizar aplicações e o
 
 ## Abrir a aplicação
 
-Executar `delivery/RoutePilot-1.6.1-Windows.exe`. A distribuição portátil extrai os seus ficheiros para uma pasta temporária; configurações e histórico ficam na pasta de dados do utilizador. Não requer Node.js para utilização.
+Executar `delivery/RoutePilot-1.7.0-Windows.exe`. A distribuição portátil extrai os seus ficheiros para uma pasta temporária; configurações e histórico ficam na pasta de dados do utilizador. Não requer Node.js para utilização.
 
 1. Adicionar uma aplicação e dar-lhe um nome. Associar um `.exe` é opcional; esse ficheiro não é executado.
 2. Configurar um ou mais hostnames/IPs conhecidos. Não colar URLs.
@@ -47,6 +47,12 @@ Na página do Counter-Strike 2, o painel **Servidores do CS2** mede os datacente
 ## LoL: região mais perto
 
 Na página do League of Legends, o painel **Servidor do LoL mais perto de ti** mede o RTT até à cidade do datacenter de cada região (lista da wiki oficial: EUW Amesterdão, EUNE Frankfurt, NA Chicago, BR São Paulo…). Como a Riot não responde a ICMP, a medição usa relays da Valve na mesma cidade, ou na mais próxima quando não há (marcado como aproximado). No LoL o servidor é a região da conta, por isso a app recomenda a região e não altera a firewall.
+
+## Onde está o meu ping?
+
+No topo da página **Rede**, escolhe onde estás (Continente, Madeira ou Açores) e o servidor (datacenter do CS2 ou região do LoL). O RoutePilot faz um traceroute, mede cada router do caminho e divide o ping em **casa** (PC → router), **operadora na ilha**, **cabo ilha → continente** e **continente → servidor** (no continente: casa e operadora → servidor). Como os routers intermédios atrasam as respostas ICMP, cada salto vale o menor RTT entre ele e os seguintes. O cabo é o primeiro salto grande depois de sair de casa.
+
+O resultado compara o ping com o **mínimo realista** para a distância (fibra a ~100 km de ida e volta por ms, +60% de percurso e 5 ms de acesso; das ilhas, via Lisboa) e dá conselhos: Wi-Fi/router lento, operadora lenta na ilha, cabo acima do esperado, rota com desvio (sugere repetir a outras horas, falar com a operadora ou testar um relay), servidor do CS2 mais perto e ping instável. Também avisa quando o ping medido é impossível para a localização escolhida. São estimativas: o traceroute não garante o caminho do tráfego do jogo.
 
 ## Verificar a minha rede
 
