@@ -105,10 +105,19 @@ const callSchema = z.discriminatedUnion("operation", [
       }),
       location: z.enum(["continente", "madeira", "acores"]),
       connection: z.enum(["cabo", "wifi"]),
+      origin: z
+        .strictObject({ lat: z.number().min(-90).max(90), lon: z.number().min(-180).max(180) })
+        .nullable()
+        .optional(),
     }),
   }),
   z.strictObject({ operation: z.literal("cancelBreakdown"), args: empty }),
   z.strictObject({ operation: z.literal("connectionInfo"), args: empty }),
+  z.strictObject({
+    operation: z.literal("locate"),
+    args: z.strictObject({ method: z.enum(["windows", "internet"]) }),
+  }),
+  z.strictObject({ operation: z.literal("openLocationSettings"), args: empty }),
   z.strictObject({ operation: z.literal("readHardware"), args: empty }),
   z.strictObject({
     operation: z.literal("exportSessions"),

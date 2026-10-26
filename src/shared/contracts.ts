@@ -162,10 +162,18 @@ export type ConnectionInfo = {
   wifiSignal: number | null;
   adapterName: string | null;
 };
+export type GeoFix = {
+  lat: number;
+  lon: number;
+  accuracyM: number | null;
+  source: "windows" | "internet";
+  place: string | null;
+};
 export type PingBreakdown = {
   measuredAt: string;
   location: "continente" | "madeira" | "acores";
   connection: ConnectionKind;
+  exactLocation: boolean;
   target: { id: string; label: string; host: string };
   serverName: string | null;
   totalMs: number;
@@ -323,10 +331,13 @@ export interface RoutePilotAPI {
   cancelNetworkCheck(): Promise<Result<void>>;
   onNetworkProgress?(listener: (step: string) => void): () => void;
   connectionInfo(): Promise<Result<ConnectionInfo>>;
+  locate(method: GeoFix["source"]): Promise<Result<GeoFix>>;
+  openLocationSettings(): Promise<Result<void>>;
   pingBreakdown(
     target: MonitorTarget,
     location: PingBreakdown["location"],
     connection: ConnectionKind,
+    origin?: { lat: number; lon: number } | null,
   ): Promise<Result<PingBreakdown>>;
   cancelBreakdown(): Promise<Result<void>>;
   onBreakdownProgress?(listener: (step: string) => void): () => void;

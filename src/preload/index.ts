@@ -56,8 +56,10 @@ const api: RoutePilotAPI = {
       ipcRenderer.removeListener("routepilot:network-progress", handler);
   },
   connectionInfo: () => invoke("connectionInfo"),
-  pingBreakdown: (target, location, connection) =>
-    invoke("pingBreakdown", { target, location, connection }),
+  locate: (method) => invoke("locate", { method }),
+  openLocationSettings: () => invoke("openLocationSettings"),
+  pingBreakdown: (target, location, connection, origin = null) =>
+    invoke("pingBreakdown", { target, location, connection, origin }),
   cancelBreakdown: () => invoke("cancelBreakdown"),
   onBreakdownProgress: (listener) => {
     const handler = (_event: Electron.IpcRendererEvent, step: string) =>

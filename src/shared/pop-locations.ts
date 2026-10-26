@@ -67,13 +67,28 @@ const ROUTE_FACTOR = 1.6;
 const ACCESS_MS = 5;
 export const fibreMs = (km: number) => (km / 100) * ROUTE_FACTOR;
 
-export function cableMs(location: PingLocation) {
-  const from = LOCATIONS[location];
+export type Coords = { lat: number; lon: number };
+
+// Ponto de partida: a localização exata, quando a pessoa a deu, ou a cidade
+// de referência da região.
+const startOf = (location: PingLocation, origin?: Coords | null): Place & { island: boolean } =>
+  origin ? { ...LOCATIONS[location], lat: origin.lat, lon: origin.lon } : LOCATIONS[location];
+
+// Região a partir de coordenadas; null fora de Portugal.
+export function regionFor({ lat, lon }: Coords): PingLocation | null {
+  if (lat >= 36.5 && lat <= 40 && lon >= -31.5 && lon <= -24.5) return "acores";
+  if (lat >= 29.8 && lat <= 33.3 && lon >= -17.5 && lon <= -15.7) return "madeira";
+  if (lat >= 36.8 && lat <= 42.2 && lon >= -9.6 && lon <= -6.1) return "continente";
+  return null;
+}
+
+export function cableMs(location: PingLocation, origin?: Coords | null) {
+  const from = startOf(location, origin);
   return from.island ? fibreMs(distanceKm(from, MAINLAND)) : 0;
 }
 
-export function expectedMs(location: PingLocation, server: Place) {
-  const from = LOCATIONS[location];
+export function expectedMs(location: PingLocation, server: Place, origin?: Coords | null) {
+  const from = startOf(location, origin);
   const km = from.island
     ? distanceKm(from, MAINLAND) + distanceKm(MAINLAND, server)
     : distanceKm(from, server);
@@ -94,10 +109,10 @@ export function popForTarget(id: string): string | null {
   return null;
 }
 
-export function nearestPop(location: PingLocation) {
+export function nearestPop(location: PingLocation, origin?: Coords | null) {
   let best: { code: string; place: Place; ms: number } | null = null;
   for (const [code, place] of Object.entries(POP_PLACES)) {
-    const ms = expectedMs(location, place);
+    const ms = expectedMs(location, place, origin);
     if (!best || ms < best.ms) best = { code, place, ms };
   }
   return best!;

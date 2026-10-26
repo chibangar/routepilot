@@ -1,13 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
-import { Cable, Globe, Lightbulb, Monitor, Router, Server, Square, Wifi, Zap } from "lucide-react";
+import {
+  Cable,
+  Globe,
+  Lightbulb,
+  LocateFixed,
+  Monitor,
+  Router,
+  Server,
+  Square,
+  Wifi,
+  X,
+  Zap,
+} from "lucide-react";
 import type {
   ConnectionInfo,
   ConnectionKind,
+  GeoFix,
   MonitorTarget,
   PingBreakdown,
 } from "../../shared/contracts";
 import { useApp } from "../context";
 import { number } from "./UI";
+import { LOCATIONS as PLACES, regionFor } from "../../shared/pop-locations";
 
 type Location = PingBreakdown["location"];
 const LOCATIONS: { id: Location; label: string }[] = [
@@ -123,6 +137,10 @@ export function PingBreakdownPanel({ busy, hero = false }: { busy: boolean; hero
     () => load(CONNECTION_KEY, ["cabo", "wifi"] as const) ?? "cabo",
   );
   const [detected, setDetected] = useState<ConnectionInfo | null>(null);
+  // A localização exata fica só em memória, não é guardada no disco.
+  const [fix, setFix] = useState<GeoFix | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locateError, setLocateError] = useState<{ message: string; off: boolean } | null>(null);
   const [running, setRunning] = useState(false);
   const [step, setStep] = useState("");
   const [result, setResult] = useState<PingBreakdown | null>(null);
@@ -154,13 +172,47 @@ export function PingBreakdownPanel({ busy, hero = false }: { busy: boolean; hero
     setResult(null);
     setStep("A seguir o caminho até ao servidor…");
     try {
-      const r = await act(() => window.routepilot.pingBreakdown(target, location, connection));
+      const r = await act(() =>
+        window.routepilot.pingBreakdown(
+          target,
+          location,
+          connection,
+          fix ? { lat: fix.lat, lon: fix.lon } : null,
+        ),
+      );
       if (r) setResult(r);
     } finally {
       setRunning(false);
       setStep("");
     }
   };
+
+  const locateMe = async (method: GeoFix["source"]) => {
+    setLocating(true);
+    setLocateError(null);
+    try {
+      const r = await window.routepilot.locate(method);
+      if (!r.ok) {
+        setLocateError({ message: r.error.message, off: r.error.code === "location_off" });
+        return;
+      }
+      setFix(r.value);
+      const region = regionFor(r.value) ?? "continente";
+      setLocation(region);
+      save(LOCATION_KEY, region);
+    } finally {
+      setLocating(false);
+    }
+  };
+  const fixRegion = fix ? regionFor(fix) : null;
+  const fixText = fix
+    ? [
+        fixRegion ? PLACES[fixRegion].name : "Fora de Portugal",
+        fix.source === "windows"
+          ? `localização exata${fix.accuracyM !== null ? ` (±${fix.accuracyM} m)` : ""}`
+          : `aproximada pela internet${fix.place ? ` · ${fix.place}` : ""}`,
+      ].join(" · ")
+    : null;
 
   const total = result ? result.segments.reduce((a, s) => a + s.ms, 0) || 1 : 1;
 
@@ -177,23 +229,36 @@ export function PingBreakdownPanel({ busy, hero = false }: { busy: boolean; hero
           <label>
             <b>1</b> Onde estás
           </label>
-          <div className="segmented" role="radiogroup" aria-label="Onde estás">
-            {LOCATIONS.map((l) => (
-              <button
-                key={l.id}
-                role="radio"
-                aria-checked={location === l.id}
-                className={location === l.id ? "active" : ""}
-                disabled={running}
-                onClick={() => {
-                  setLocation(l.id);
-                  save(LOCATION_KEY, l.id);
-                }}
-              >
-                {l.label}
-              </button>
-            ))}
+          <div className="ping-row">
+            <div className="segmented" role="radiogroup" aria-label="Onde estás">
+              {LOCATIONS.map((l) => (
+                <button
+                  key={l.id}
+                  role="radio"
+                  aria-checked={location === l.id && !(fix && !fixRegion)}
+                  className={location === l.id && !(fix && !fixRegion) ? "active" : ""}
+                  disabled={running}
+                  onClick={() => {
+                    setFix(null);
+                    setLocation(l.id);
+                    save(LOCATION_KEY, l.id);
+                  }}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+            <button
+              className={"locate-btn" + (fix ? " located" : "")}
+              disabled={running || locating}
+              onClick={() => void locateMe("windows")}
+              title="Usar a localização exata deste PC"
+            >
+              <LocateFixed size={16} className={locating ? "locating" : ""} />
+              {locating ? "A localizar…" : fix ? "Localizado" : "Localizar-me"}
+            </button>
           </div>
+          {fixText && <small className="ping-detected">{fixText}</small>}
         </div>
 
         <div className="ping-step">
@@ -266,11 +331,40 @@ export function PingBreakdownPanel({ busy, hero = false }: { busy: boolean; hero
             <Square size={16} /> Cancelar
           </button>
         ) : (
-          <button className="ping-go" disabled={busy || !selected} onClick={() => void run()}>
+          <button className="ping-go" disabled={busy || locating || !selected} onClick={() => void run()}>
             <Zap size={18} /> Analisar
           </button>
         )}
       </div>
+
+      {locateError && (
+        <div className="locate-help" role="alert">
+          <span>
+            <strong>{locateError.message}</strong>{" "}
+            {locateError.off
+              ? "Liga-a nas definições para teres a localização exata, ou usa uma aproximada pela internet (envia o teu endereço IP ao serviço ipwho.is)."
+              : "Escolhe a região à mão."}
+          </span>
+          <div>
+            {locateError.off && (
+              <>
+                <button
+                  className="button compact"
+                  onClick={() => void window.routepilot.openLocationSettings()}
+                >
+                  Abrir definições
+                </button>
+                <button className="button compact" onClick={() => void locateMe("internet")}>
+                  Usar aproximada
+                </button>
+              </>
+            )}
+            <button className="icon-btn" aria-label="Fechar" onClick={() => setLocateError(null)}>
+              <X size={15} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {running && (
         <RouteAnimation step={step} island={location !== "continente"} connection={connection} />
@@ -285,6 +379,7 @@ export function PingBreakdownPanel({ busy, hero = false }: { busy: boolean; hero
               <span>
                 Ping até {result.serverName ?? result.target.label} · típico {ms(result.medianMs)} ·{" "}
                 {result.connection === "wifi" ? "Wi-Fi" : "cabo"}
+                {result.exactLocation ? " · a partir da tua localização" : ""}
               </span>
             </div>
           </div>

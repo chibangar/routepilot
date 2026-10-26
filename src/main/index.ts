@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, Menu, screen } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, Menu, screen, shell } from "electron";
 import { autoUpdater } from "electron-updater";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -34,6 +34,7 @@ import {
   setPowerScheme,
 } from "./system/performance";
 import { applyQos, readQos } from "./system/qos";
+import { locate, LocationError } from "./system/location";
 import { automaticLinks, preferLink, readLinks } from "./system/interfaces";
 import { readStatus, requestMode, uninstall } from "./diagnostics/cs2-firewall";
 import { readHardware } from "./hardware";
@@ -757,6 +758,7 @@ if (!app.requestSingleInstanceLock()) {
                 call.args.target,
                 call.args.location,
                 call.args.connection,
+                call.args.origin ?? null,
                 breakdownController.signal,
                 (step) => {
                   if (!sender.isDestroyed())
@@ -780,6 +782,17 @@ if (!app.requestSingleInstanceLock()) {
                 adapterName: adapter.name,
               });
             }
+            case "locate":
+              try {
+                return ok(await locate(call.args.method, AbortSignal.timeout(20000)));
+              } catch (e) {
+                return e instanceof LocationError
+                  ? fail(e.code, e.message)
+                  : fail("location_failed", "Não foi possível obter a localização.");
+              }
+            case "openLocationSettings":
+              await shell.openExternal("ms-settings:privacy-location");
+              return ok(undefined);
             case "cancelBreakdown":
               breakdownController?.abort();
               await breakdownWork?.catch(() => undefined);

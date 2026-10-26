@@ -12,6 +12,7 @@ import {
   nearestPop,
   placeForPop,
   popForTarget,
+  type Coords,
   type PingLocation,
 } from "../../shared/pop-locations";
 import { probeHost } from "./ping";
@@ -25,6 +26,7 @@ export type HopPoint = { ttl: number; address: string; ms: number };
 export type Measured = {
   location: PingLocation;
   connection: ConnectionKind;
+  origin?: Coords | null;
   target: MonitorTarget;
   points: HopPoint[];
   totalMs: number;
@@ -71,7 +73,7 @@ export function analyse(m: Measured): PingBreakdown {
   const place = LOCATIONS[m.location];
   const popCode = popForTarget(m.target.id);
   const server = popCode ? placeForPop(popCode) : null;
-  const cableExpected = place.island ? r1(cableMs(m.location)) : null;
+  const cableExpected = place.island ? r1(cableMs(m.location, m.origin)) : null;
 
   // O cabo é o primeiro salto grande depois de sair de casa.
   let cableAt: number | null = null;
@@ -117,7 +119,7 @@ export function analyse(m: Measured): PingBreakdown {
             : "continente",
   }));
 
-  const expected = server ? expectedMs(m.location, server) : null;
+  const expected = server ? expectedMs(m.location, server, m.origin) : null;
   const excess = expected === null ? null : r1(total - expected);
   // Em Wi-Fi bom o router responde em 2–6 ms; por cabo em 1–2 ms.
   const wifi = m.connection === "wifi";
@@ -187,7 +189,7 @@ export function analyse(m: Measured): PingBreakdown {
       `Estás ${ms(excess!)} acima do esperado. Repete o teste a horas diferentes: se só acontece à noite é congestão da operadora; se acontece sempre, a rota dá uma volta. Mostra este resultado à operadora ou testa um relay em Lisboa ou Madrid (Definições → Servidores de passagem, depois Comparar rotas no jogo).`,
     );
   if (m.target.id.startsWith("cs2-") && expected !== null) {
-    const near = nearestPop(m.location);
+    const near = nearestPop(m.location, m.origin);
     if (placeForPop(near.code) !== server && expected - near.ms > 10)
       advice.push(
         `${near.place.name} fica mais perto de ti (~${ms(near.ms)} estimados contra ~${ms(expected)}). No CS2, ativa o modo Automático para jogares no servidor com menor ping.`,
@@ -215,6 +217,7 @@ export function analyse(m: Measured): PingBreakdown {
     measuredAt: new Date().toISOString(),
     location: m.location,
     connection: m.connection,
+    exactLocation: !!m.origin,
     target: { id: m.target.id, label: m.target.label, host: m.target.host },
     serverName,
     totalMs: r1(total),
@@ -245,6 +248,7 @@ export async function runBreakdown(
   target: MonitorTarget,
   location: PingLocation,
   connection: ConnectionKind,
+  origin: Coords | null,
   signal: AbortSignal,
   onProgress: (step: string) => void,
 ): Promise<PingBreakdown> {
@@ -284,6 +288,7 @@ export async function runBreakdown(
   return analyse({
     location,
     connection,
+    origin,
     target,
     points,
     totalMs: okSamples[0],

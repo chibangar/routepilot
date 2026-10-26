@@ -4,7 +4,7 @@ Aplicação desktop para Windows, em português, para organizar aplicações e o
 
 ## Abrir a aplicação
 
-Executar `delivery/RoutePilot-1.8.0-Windows.exe`. A distribuição portátil extrai os seus ficheiros para uma pasta temporária; configurações e histórico ficam na pasta de dados do utilizador. Não requer Node.js para utilização.
+Executar `delivery/RoutePilot-1.8.1-Windows.exe`. A distribuição portátil extrai os seus ficheiros para uma pasta temporária; configurações e histórico ficam na pasta de dados do utilizador. Não requer Node.js para utilização.
 
 1. Adicionar uma aplicação e dar-lhe um nome. Associar um `.exe` é opcional; esse ficheiro não é executado.
 2. Configurar um ou mais hostnames/IPs conhecidos. Não colar URLs.
@@ -50,7 +50,7 @@ Na página do League of Legends, o painel **Servidor do LoL mais perto de ti** m
 
 ## Onde está o meu ping?
 
-No **Início**, escolhe onde estás (Continente, Madeira ou Açores), a ligação (**Cabo de rede** ou **Wi-Fi**, detetada automaticamente mas podes mudar) e o servidor (datacenter do CS2 ou região do LoL), e carrega em **Analisar**. Enquanto mede, uma animação mostra o caminho PC → router → operadora → servidor. O RoutePilot faz um traceroute, mede cada router do caminho e divide o ping em **casa** (PC → router), **operadora na ilha**, **cabo ilha → continente** e **continente → servidor** (no continente: casa e operadora → servidor). Como os routers intermédios atrasam as respostas ICMP, cada salto vale o menor RTT entre ele e os seguintes. O cabo é o primeiro salto grande depois de sair de casa.
+No **Início**, escolhe onde estás (Continente, Madeira ou Açores), a ligação (**Cabo de rede** ou **Wi-Fi**, detetada automaticamente mas podes mudar) e o servidor (datacenter do CS2 ou região do LoL), e carrega em **Analisar**. O botão **Localizar-me** usa a localização do Windows (exata, não sai do PC) para escolher a região e calcular a distância a partir do sítio onde estás; se estiver desligada, oferece abrir as definições ou usar uma localização aproximada pela internet (envia o IP ao serviço ipwho.is, só quando carregas nesse botão). A localização fica só em memória. Enquanto mede, uma animação mostra o caminho PC → router → operadora → servidor. O RoutePilot faz um traceroute, mede cada router do caminho e divide o ping em **casa** (PC → router), **operadora na ilha**, **cabo ilha → continente** e **continente → servidor** (no continente: casa e operadora → servidor). Como os routers intermédios atrasam as respostas ICMP, cada salto vale o menor RTT entre ele e os seguintes. O cabo é o primeiro salto grande depois de sair de casa.
 
 O resultado compara o ping com o **mínimo realista** para a distância (fibra a ~100 km de ida e volta por ms, +60% de percurso e 5 ms de acesso; das ilhas, via Lisboa) e dá conselhos próprios para cabo ou Wi-Fi (em Wi-Fi aceita até 8 ms em casa e sugere 5 GHz e ficar perto do router; por cabo, reiniciar o router ou ver o bufferbloat): router lento, operadora lenta na ilha, cabo acima do esperado, rota com desvio (sugere repetir a outras horas, falar com a operadora ou testar um relay), servidor do CS2 mais perto e ping instável. Também avisa quando o ping medido é impossível para a localização escolhida. São estimativas: o traceroute não garante o caminho do tráfego do jogo.
 

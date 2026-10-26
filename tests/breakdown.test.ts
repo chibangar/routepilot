@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { analyse, type Measured } from "../src/main/diagnostics/breakdown";
 import { validateCall } from "../src/main/ipc";
-import { expectedMs, nearestPop, POP_PLACES } from "../src/shared/pop-locations";
+import { expectedMs, nearestPop, POP_PLACES, regionFor } from "../src/shared/pop-locations";
 
 const madrid = { id: "cs2-mad", group: "CS2", label: "Madrid (Spain)", host: "155.133.246.34" };
 const frankfurt = { id: "cs2-fra", group: "CS2", label: "Frankfurt (Germany)", host: "155.133.226.71" };
@@ -146,4 +146,26 @@ test("keeps ISP private hops out of home and spots an impossible island ping", (
   expect(r.hops.map((h) => h.part)).toEqual(["casa", "caminho", "caminho"]);
   expect(r.headline).toMatch(/não bate com a localização/);
   expect(r.advice[0]).toMatch(/não é possível a partir dos Açores/);
+});
+
+test("exact coordinates pick the region and refine the distance estimate", () => {
+  expect(regionFor({ lat: 37.74, lon: -25.67 })).toBe("acores"); // Ponta Delgada
+  expect(regionFor({ lat: 39.45, lon: -31.13 })).toBe("acores"); // Flores
+  expect(regionFor({ lat: 32.65, lon: -16.91 })).toBe("madeira"); // Funchal
+  expect(regionFor({ lat: 41.15, lon: -8.61 })).toBe("continente"); // Porto
+  expect(regionFor({ lat: 48.86, lon: 2.35 })).toBeNull(); // Paris
+  const mad = POP_PLACES.mad;
+  // Flores fica mais longe do continente do que São Miguel.
+  expect(expectedMs("acores", mad, { lat: 39.45, lon: -31.13 })).toBeGreaterThan(expectedMs("acores", mad));
+  const r = analyse(base({ location: "acores", origin: { lat: 39.45, lon: -31.13 }, totalMs: 60 }));
+  expect(r.exactLocation).toBe(true);
+  expect(r.expectedMs).toBe(expectedMs("acores", mad, { lat: 39.45, lon: -31.13 }));
+});
+
+test("IPC validates the origin and the locate method", () => {
+  const args = { target: madrid, location: "acores", connection: "cabo" };
+  expect(validateCall({ operation: "pingBreakdown", args: { ...args, origin: { lat: 37.7, lon: -25.6 } } }).ok).toBe(true);
+  expect(validateCall({ operation: "pingBreakdown", args: { ...args, origin: { lat: 137, lon: 0 } } }).ok).toBe(false);
+  expect(validateCall({ operation: "locate", args: { method: "windows" } }).ok).toBe(true);
+  expect(validateCall({ operation: "locate", args: { method: "gps" } }).ok).toBe(false);
 });
