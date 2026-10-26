@@ -1,7 +1,7 @@
 {
   "name": "routepilot",
   "productName": "RoutePilot",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "Diagnóstico local de ligações e rotas para Windows",
   "author": "Ricardo",
   "private": true,

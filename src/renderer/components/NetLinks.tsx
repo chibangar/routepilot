@@ -33,9 +33,7 @@ export function NetLinks() {
             <Network size={16} /> Multi-Internet
           </h3>
           <p>
-            Se tens mais de uma ligação (cabo, Wi-Fi, 4G), mede o ping em cada
-            uma e escolhe qual o Windows usa primeiro. Se a preferida cair, o
-            Windows passa sozinho para a seguinte.
+            Tens cabo, Wi-Fi ou 4G? Escolhe qual o Windows usa primeiro.
           </p>
         </div>
         <button

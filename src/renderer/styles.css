@@ -4393,12 +4393,64 @@ td {
 }
 
 /* Onde está o meu ping? */
+.breakdown-hero {
+  padding: 26px 28px;
+  border-color: rgba(73, 223, 177, 0.3);
+}
+.breakdown-hero h3 {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.breakdown-hero h3 svg {
+  color: var(--mint);
+}
+.breakdown-intro {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
 .breakdown-controls {
   display: flex;
   gap: 10px;
-  align-items: center;
+  align-items: stretch;
   flex-wrap: wrap;
-  margin-top: 12px;
+  margin-top: 18px;
+}
+.breakdown-controls .segmented button {
+  padding: 9px 16px;
+  font-size: 14px;
+}
+.breakdown-select {
+  background: #191f27;
+  border: 1px solid #333c49;
+  border-radius: 7px;
+  color: inherit;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 14px;
+  width: auto;
+  flex: 0 1 300px;
+  min-width: 200px;
+}
+.breakdown-score {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.breakdown-score > strong {
+  font-size: 40px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.breakdown-score span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.tool-tabs {
+  margin-bottom: 14px;
 }
 .segmented {
   display: inline-flex;
@@ -4430,7 +4482,7 @@ td {
   gap: 14px;
 }
 .breakdown-headline {
-  margin: 0;
+  margin: 0 0 4px;
   font-size: 16px;
   font-weight: 600;
 }
@@ -4482,29 +4534,25 @@ td {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
 }
 .breakdown-legend li {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 10px 12px;
+  gap: 7px;
   font-size: 13px;
+  color: var(--muted);
+}
+.breakdown-legend strong {
+  color: #fff;
 }
 .breakdown-legend i {
   width: 10px;
   height: 10px;
   border-radius: 3px;
   flex-shrink: 0;
-}
-.breakdown-legend span {
-  flex: 1;
-  color: var(--muted);
 }
 .breakdown-hops summary {
   cursor: pointer;

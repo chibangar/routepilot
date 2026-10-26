@@ -17,6 +17,7 @@ export function NetworkPage() {
   const [running, setRunning] = useState(false);
   const [step, setStep] = useState("");
   const [withLoad, setWithLoad] = useState(true);
+  const [tool, setTool] = useState<"casa" | "monitor" | "ligacoes">("casa");
 
   useEffect(
     () => window.routepilot?.onNetworkProgress?.((s) => setStep(s)),
@@ -41,23 +42,41 @@ export function NetworkPage() {
     <>
       <PageHeading
         eyebrow="ANTES DE JOGAR"
-        title="Verificar a minha rede"
-        subtitle="Descobre de onde vem o teu ping: casa, operadora, cabo até ao continente ou servidor."
+        title="A minha rede"
+        subtitle="Descobre porque tens ping alto e o que fazer."
       />
       <PingBreakdownPanel busy={busy || running} />
-      <SectionTitle>Rede de casa</SectionTitle>
+
+      <SectionTitle>Outras ferramentas</SectionTitle>
+      <div className="segmented tool-tabs" role="tablist" aria-label="Outras ferramentas">
+        {(
+          [
+            ["casa", "Teste da rede de casa"],
+            ["monitor", "Monitor ao vivo"],
+            ["ligacoes", "Ligações"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={tool === id}
+            className={tool === id ? "active" : ""}
+            onClick={() => setTool(id)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {tool === "casa" && (
+      <>
       <section className="panel network-panel">
         <div className="route-compare-head">
           <div>
             <h3>
-              <Gauge size={16} /> Teste completo (~30 s)
+              <Gauge size={16} /> Wi-Fi, router e bufferbloat (~30 s)
             </h3>
             <p>
-              Mede o router, o ping com a ligação parada e o ping durante um
-              download e um upload curtos (servidores de teste da Cloudflare,
-              no máximo ~80 MB). Se a ligação deixar de responder, a carga
-              pára logo. Em ligações tarifadas ou móveis (4G/5G, hotspot) a
-              carga não é feita.
+              Usa até ~80 MB. Não corre em ligações móveis ou tarifadas.
             </p>
             <label className="cs2-auto-toggle network-load-toggle">
               <input
@@ -186,11 +205,10 @@ export function NetworkPage() {
         </>
       )}
 
-      <SectionTitle>Network Analyzer</SectionTitle>
-      <NetworkMonitor />
-
-      <SectionTitle>Ligações</SectionTitle>
-      <NetLinks />
+      </>
+      )}
+      {tool === "monitor" && <NetworkMonitor />}
+      {tool === "ligacoes" && <NetLinks />}
     </>
   );
 }

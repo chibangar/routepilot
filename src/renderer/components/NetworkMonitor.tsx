@@ -59,8 +59,7 @@ export function NetworkMonitor() {
             <Activity size={16} /> Monitor ao vivo
           </h3>
           <p>
-            Deixa a correr enquanto jogas: mede o ping a cada segundo e marca
-            picos e pacotes perdidos. Escolhe o servidor onde estás a jogar.
+            Deixa a correr enquanto jogas: mede o ping a cada segundo.
           </p>
         </div>
         <div className="monitor-controls">
